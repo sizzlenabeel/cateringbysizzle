@@ -11,7 +11,8 @@ const Hero = () => {
           <div className="pt-10 sm:pt-16 lg:pt-8 lg:pb-14 px-4 sm:px-6 lg:px-8">
             <div className="sm:text-center lg:text-left">
               <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
-                <span className="block">Sizzle</span>{" "}
+                <span className="block">
+              </span>{" "}
                 <span className="block text-white/80">Global Flavors for Your Workplace </span>
               </h1>
               <p className="mt-3 text-base text-white/90 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
