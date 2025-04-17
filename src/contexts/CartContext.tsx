@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Cart, CartItem, initialCart, discountCodes, currentCompany, formatPrice } from "@/data/cartData";
 import { menuItems } from "@/data/menuData";
@@ -35,9 +36,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
-      // Using raw SQL query with type assertion for now, until types are updated
+      // Using type assertion to work around TypeScript issues with new tables
       const { data: cartItems, error } = await supabase
-        .from('cart_items')
+        .from('cart_items' as any)
         .select('*');
 
       if (error) {
@@ -88,9 +89,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Using type assertion for now
+    // Using type assertion to work around TypeScript issues with new tables
     const { error } = await supabase
-      .from('cart_items')
+      .from('cart_items' as any)
       .insert({
         user_id: session.user.id,
         menu_id: item.menuId,
@@ -127,9 +128,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return removeFromCart(menuId);
     }
 
-    // Using type assertion for now
+    // Using type assertion to work around TypeScript issues with new tables
     const { error } = await supabase
-      .from('cart_items')
+      .from('cart_items' as any)
       .update({ quantity } as any)
       .eq('menu_id', menuId)
       .eq('user_id', session.user.id);
@@ -149,9 +150,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
 
-    // Using type assertion for now
+    // Using type assertion to work around TypeScript issues with new tables
     const { error } = await supabase
-      .from('cart_items')
+      .from('cart_items' as any)
       .delete()
       .eq('menu_id', menuId)
       .eq('user_id', session.user.id);
@@ -174,9 +175,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
 
-    // Using type assertion for now
+    // Using type assertion to work around TypeScript issues with new tables
     const { error } = await supabase
-      .from('cart_items')
+      .from('cart_items' as any)
       .delete()
       .eq('user_id', session.user.id);
 
