@@ -1,8 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Cart, CartItem, initialCart, discountCodes, currentCompany, formatPrice } from "@/data/cartData";
 import { menuItems } from "@/data/menuData";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CartContextType {
   cart: Cart;
@@ -28,25 +28,165 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<Cart>(initialCart);
   const { toast } = useToast();
 
-  // Load cart from localStorage on component mount
+  // Load cart from Supabase when user logs in
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart);
-        setCart(parsedCart);
-      } catch (error) {
-        console.error("Failed to parse cart from localStorage", error);
+    const loadCart = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data: cartItems, error } = await supabase
+        .from('cart_items')
+        .select('*');
+
+      if (error) {
+        console.error('Error loading cart:', error);
+        return;
       }
-    }
+
+      if (cartItems) {
+        const loadedCart: Cart = {
+          items: cartItems.map(item => ({
+            menuId: item.menu_id,
+            quantity: item.quantity,
+            selectedSubProducts: item.selected_sub_products || [],
+            totalPrice: Number(item.total_price)
+          })),
+          subtotal: cartItems.reduce((sum, item) => sum + Number(item.total_price), 0),
+          discount: 0,
+          total: cartItems.reduce((sum, item) => sum + Number(item.total_price), 0)
+        };
+        setCart(loadedCart);
+      }
+    };
+
+    loadCart();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        loadCart();
+      } else if (event === 'SIGNED_OUT') {
+        setCart(initialCart);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+  const addToCart = async (item: CartItem) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to add items to cart",
+        variant: "destructive"
+      });
+      return;
+    }
 
-  // Recalculate cart totals
+    const { error } = await supabase
+      .from('cart_items')
+      .insert({
+        user_id: session.user.id,
+        menu_id: item.menuId,
+        quantity: item.quantity,
+        selected_sub_products: item.selectedSubProducts,
+        total_price: item.totalPrice
+      });
+
+    if (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const updatedItems = [...cart.items, item];
+    const updatedCart = recalculateCart(updatedItems);
+    setCart(updatedCart);
+    
+    toast({
+      title: "Added to cart",
+      description: `${item.quantity} item(s) added to your cart`
+    });
+  };
+
+  const updateQuantity = async (menuId: string, quantity: number) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+
+    if (quantity <= 0) {
+      return removeFromCart(menuId);
+    }
+
+    const { error } = await supabase
+      .from('cart_items')
+      .update({ quantity })
+      .eq('menu_id', menuId)
+      .eq('user_id', session.user.id);
+
+    if (error) {
+      console.error('Error updating quantity:', error);
+      return;
+    }
+
+    const updatedItems = cart.items.map(item =>
+      item.menuId === menuId ? { ...item, quantity } : item
+    );
+    setCart(recalculateCart(updatedItems));
+  };
+
+  const removeFromCart = async (menuId: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+
+    const { error } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('menu_id', menuId)
+      .eq('user_id', session.user.id);
+
+    if (error) {
+      console.error('Error removing item:', error);
+      return;
+    }
+
+    const updatedItems = cart.items.filter(item => item.menuId !== menuId);
+    setCart(recalculateCart(updatedItems));
+    
+    toast({
+      title: "Removed from cart",
+      description: "Item removed from your cart"
+    });
+  };
+
+  const clearCart = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+
+    const { error } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('user_id', session.user.id);
+
+    if (error) {
+      console.error('Error clearing cart:', error);
+      return;
+    }
+
+    setCart(initialCart);
+    
+    toast({
+      title: "Cart cleared",
+      description: "All items have been removed from your cart"
+    });
+  };
+
   const recalculateCart = (updatedItems: CartItem[]) => {
     const subtotal = updatedItems.reduce((sum, item) => sum + item.totalPrice * item.quantity, 0);
     
@@ -72,52 +212,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       total,
       discountCode: cart.discountCode
     };
-  };
-
-  const addToCart = (item: CartItem) => {
-    const existingItemIndex = cart.items.findIndex(i => 
-      i.menuId === item.menuId && 
-      JSON.stringify(i.selectedSubProducts) === JSON.stringify(item.selectedSubProducts)
-    );
-
-    let updatedItems;
-    
-    if (existingItemIndex >= 0) {
-      // Update existing item
-      updatedItems = [...cart.items];
-      updatedItems[existingItemIndex] = {
-        ...updatedItems[existingItemIndex],
-        quantity: updatedItems[existingItemIndex].quantity + item.quantity
-      };
-    } else {
-      // Add new item
-      updatedItems = [...cart.items, item];
-    }
-    
-    setCart(recalculateCart(updatedItems));
-    
-    toast({
-      title: "Menu added to cart",
-      description: `${item.quantity} x ${menuItems.find(m => m.id === item.menuId)?.name} added`,
-    });
-  };
-
-  const updateQuantity = (menuId: string, quantity: number) => {
-    const updatedItems = cart.items.map(item => 
-      item.menuId === menuId ? { ...item, quantity } : item
-    );
-    
-    setCart(recalculateCart(updatedItems));
-  };
-
-  const removeFromCart = (menuId: string) => {
-    const updatedItems = cart.items.filter(item => item.menuId !== menuId);
-    setCart(recalculateCart(updatedItems));
-    
-    toast({
-      title: "Item removed",
-      description: "Menu item removed from cart",
-    });
   };
 
   const applyDiscountCode = (code: string) => {
@@ -147,10 +241,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
     
     return false;
-  };
-
-  const clearCart = () => {
-    setCart(initialCart);
   };
 
   return (
