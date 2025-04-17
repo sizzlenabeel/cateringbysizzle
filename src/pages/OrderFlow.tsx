@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -20,7 +19,6 @@ import { EventType, MenuItemWithRelations, ServingStyle } from "@/types/supabase
 import { useAuth } from "@/contexts/AuthContext";
 import { seedSampleMenuItems } from "@/services/adminService";
 
-// Sample addresses data (will come from database later)
 const addressOptions = [
   { id: "addr1", name: "Main Office", address: "123 Business St, Stockholm, 10044" },
   { id: "addr2", name: "Branch Office", address: "456 Corporate Ave, Stockholm, 10067" },
@@ -49,13 +47,11 @@ const OrderFlow = () => {
     refetchMenuItems
   } = useMenuData();
 
-  // Handle address selection
   const handleAddressSelect = (address: typeof addressOptions[0]) => {
     setSelectedAddress(address);
     setShowAddAddress(false);
   };
 
-  // Handle new address addition
   const handleAddNewAddress = () => {
     if (newAddress.trim() !== "") {
       const newAddressObj = {
@@ -63,7 +59,6 @@ const OrderFlow = () => {
         name: `New Address ${addressOptions.length + 1}`,
         address: newAddress
       };
-      // In reality, this would be saved to the database
       addressOptions.push(newAddressObj);
       setSelectedAddress(newAddressObj);
       setShowAddAddress(false);
@@ -71,7 +66,6 @@ const OrderFlow = () => {
     }
   };
 
-  // Handle seeding sample data
   const handleSeedSampleData = async () => {
     setIsSeeding(true);
     try {
@@ -80,9 +74,8 @@ const OrderFlow = () => {
         toast({
           title: "Sample menus added",
           description: "Sample menu items have been added to the database",
-          variant: "success"
+          variant: "default"
         });
-        // Refresh menu items
         await refetchMenuItems();
       } else {
         toast({
@@ -195,12 +188,10 @@ const OrderFlow = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50">
-        {/* Top Bar - Fixed throughout the order process */}
         <div className="sticky top-16 z-10 bg-white shadow-sm border-b border-gray-200">
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col md:flex-row justify-between">
               <div className="flex flex-wrap gap-4 md:gap-6">
-                {/* Delivery Time Selector */}
                 <div className="flex items-center text-sm">
                   <Clock className="h-4 w-4 mr-2 text-catering-secondary" />
                   <Input
@@ -211,7 +202,6 @@ const OrderFlow = () => {
                   />
                 </div>
                 
-                {/* Delivery Date Selector */}
                 <div className="flex items-center text-sm">
                   <Popover>
                     <PopoverTrigger asChild>
@@ -237,7 +227,6 @@ const OrderFlow = () => {
                   </Popover>
                 </div>
                 
-                {/* Address Selector */}
                 <div className="flex items-center text-sm relative">
                   <Popover open={showAddAddress} onOpenChange={setShowAddAddress}>
                     <PopoverTrigger asChild>
@@ -306,7 +295,6 @@ const OrderFlow = () => {
           </div>
         </div>
 
-        {/* Order Flow Content */}
         <div className="container mx-auto py-8 px-4">
           <Tabs value={step} onValueChange={setStep} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
