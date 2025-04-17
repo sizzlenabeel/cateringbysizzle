@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          menu_id: string
+          quantity: number
+          selected_sub_products: Json
+          total_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_id: string
+          quantity?: number
+          selected_sub_products?: Json
+          total_price: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_id?: string
+          quantity?: number
+          selected_sub_products?: Json
+          total_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_menu_id_fkey"
+            columns: ["menu_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           address: string
@@ -331,6 +372,102 @@ export type Database = {
           minimum_quantity?: number | null
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          menu_id: string
+          order_id: string
+          quantity: number
+          selected_sub_products: Json
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_id: string
+          order_id: string
+          quantity: number
+          selected_sub_products?: Json
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_id?: string
+          order_id?: string
+          quantity?: number
+          selected_sub_products?: Json
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_menu_id_fkey"
+            columns: ["menu_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          discount_amount: number
+          discount_code: string | null
+          id: string
+          reference: string | null
+          shipping_address: string
+          shipping_email: string
+          shipping_name: string
+          shipping_phone: string
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discount_amount?: number
+          discount_code?: string | null
+          id?: string
+          reference?: string | null
+          shipping_address: string
+          shipping_email: string
+          shipping_name: string
+          shipping_phone: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discount_amount?: number
+          discount_code?: string | null
+          id?: string
+          reference?: string | null
+          shipping_address?: string
+          shipping_email?: string
+          shipping_name?: string
+          shipping_phone?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

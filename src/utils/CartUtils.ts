@@ -1,167 +1,150 @@
 
 import { Cart, CartItem, calculateCartTotals, currentCompany } from "@/data/cartData";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Add an item to the cart
- * @param cart Current cart state
- * @param item Item to add
- * @returns Updated cart
  */
-export const addToCart = (cart: Cart, item: CartItem): Cart => {
-  // Check if the item already exists in the cart
-  const existingItemIndex = cart.items.findIndex(cartItem => cartItem.menuId === item.menuId);
-  
-  let updatedItems;
-  
-  if (existingItemIndex >= 0) {
-    // Update existing item
-    updatedItems = cart.items.map((cartItem, index) => {
-      if (index === existingItemIndex) {
-        // Merge selected sub-products and update quantity and price
-        const updatedSubProducts = [...new Set([
-          ...cartItem.selectedSubProducts, 
-          ...item.selectedSubProducts
-        ])];
-        
-        return {
-          ...cartItem,
-          quantity: cartItem.quantity + item.quantity,
-          selectedSubProducts: updatedSubProducts,
-          totalPrice: cartItem.totalPrice + item.totalPrice
-        };
-      }
-      return cartItem;
-    });
-    
+export const addToCart = async (item: CartItem): Promise<boolean> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) {
     toast({
-      title: "Cart updated",
-      description: "Item quantity has been updated in your cart",
+      title: "Please log in",
+      description: "You need to be logged in to add items to cart",
+      variant: "destructive"
     });
-  } else {
-    // Add new item
-    updatedItems = [...cart.items, item];
-    
-    toast({
-      title: "Item added to cart",
-      description: `${item.quantity} item(s) have been added to your cart`,
-    });
+    return false;
   }
-  
-  const updatedCart = {
-    ...cart,
-    items: updatedItems,
-  };
-  
-  // Calculate totals with company discount
-  return calculateCartTotals(updatedCart, currentCompany.discountPercentage);
+
+  try {
+    const { error } = await supabase
+      .from('cart_items')
+      .insert({
+        user_id: session.user.id,
+        menu_id: item.menuId,
+        quantity: item.quantity,
+        selected_sub_products: item.selectedSubProducts,
+        total_price: item.totalPrice
+      });
+
+    if (error) throw error;
+    
+    toast({
+      title: "Item added",
+      description: `${item.quantity} item(s) have been added to your cart`
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    toast({
+      title: "Error",
+      description: "Failed to add item to cart. Please try again.",
+      variant: "destructive"
+    });
+    return false;
+  }
 };
 
 /**
  * Remove an item from the cart
- * @param cart Current cart state
- * @param menuId ID of the menu item to remove
- * @returns Updated cart
  */
-export const removeFromCart = (cart: Cart, menuId: string): Cart => {
-  const updatedItems = cart.items.filter(item => item.menuId !== menuId);
-  
-  const updatedCart = {
-    ...cart,
-    items: updatedItems,
-  };
-  
-  toast({
-    title: "Item removed",
-    description: "Item has been removed from your cart",
-  });
-  
-  // Calculate totals with company discount
-  return calculateCartTotals(updatedCart, currentCompany.discountPercentage);
+export const removeFromCart = async (itemId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('id', itemId);
+
+    if (error) throw error;
+    
+    toast({
+      title: "Item removed",
+      description: "Item has been removed from your cart"
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error removing from cart:', error);
+    toast({
+      title: "Error",
+      description: "Failed to remove item. Please try again.",
+      variant: "destructive"
+    });
+    return false;
+  }
 };
 
 /**
- * Update an item's quantity in the cart
- * @param cart Current cart state
- * @param menuId ID of the menu item
- * @param quantity New quantity
- * @returns Updated cart
+ * Update cart item quantity
  */
-export const updateCartItemQuantity = (cart: Cart, menuId: string, quantity: number): Cart => {
+export const updateCartItemQuantity = async (itemId: string, quantity: number): Promise<boolean> => {
   if (quantity <= 0) {
-    return removeFromCart(cart, menuId);
+    return removeFromCart(itemId);
   }
-  
-  const updatedItems = cart.items.map(item => {
-    if (item.menuId === menuId) {
-      const pricePerUnit = item.totalPrice / item.quantity;
-      return {
-        ...item,
+
+  try {
+    const { error } = await supabase
+      .from('cart_items')
+      .update({ quantity })
+      .eq('id', itemId);
+
+    if (error) throw error;
+    
+    toast({
+      title: "Quantity updated",
+      description: "Cart has been updated"
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating quantity:', error);
+    toast({
+      title: "Error",
+      description: "Failed to update quantity. Please try again.",
+      variant: "destructive"
+    });
+    return false;
+  }
+};
+
+/**
+ * Load cart items from database
+ */
+export const loadCartItems = async (): Promise<CartItem[]> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('cart_items')
+      .select(`
+        id,
+        menu_id,
         quantity,
-        totalPrice: pricePerUnit * quantity
-      };
-    }
-    return item;
-  });
-  
-  const updatedCart = {
-    ...cart,
-    items: updatedItems,
-  };
-  
-  // Calculate totals with company discount
-  return calculateCartTotals(updatedCart, currentCompany.discountPercentage);
-};
+        selected_sub_products,
+        total_price
+      `)
+      .eq('user_id', session.user.id);
 
-/**
- * Clear all items from the cart
- * @returns Empty cart with calculated totals
- */
-export const clearCart = (): Cart => {
-  const emptyCart: Cart = {
-    items: [],
-    subtotal: 0,
-    discount: 0,
-    total: 0,
-    discountCode: undefined
-  };
-  
-  toast({
-    title: "Cart cleared",
-    description: "All items have been removed from your cart",
-  });
-  
-  return emptyCart;
-};
+    if (error) throw error;
 
-/**
- * Save cart to local storage
- * @param cart Cart to save
- */
-export const saveCartToLocalStorage = (cart: Cart): void => {
-  localStorage.setItem('userCart', JSON.stringify(cart));
-};
-
-/**
- * Load cart from local storage
- * @returns Cart from local storage or empty cart
- */
-export const loadCartFromLocalStorage = (): Cart => {
-  const savedCart = localStorage.getItem('userCart');
-  
-  if (savedCart) {
-    try {
-      const parsedCart = JSON.parse(savedCart);
-      return calculateCartTotals(parsedCart, currentCompany.discountPercentage);
-    } catch (error) {
-      console.error('Error parsing saved cart:', error);
-    }
+    return data.map(item => ({
+      id: item.id,
+      menuId: item.menu_id,
+      quantity: item.quantity,
+      selectedSubProducts: item.selected_sub_products,
+      totalPrice: Number(item.total_price)
+    }));
+  } catch (error) {
+    console.error('Error loading cart:', error);
+    toast({
+      title: "Error",
+      description: "Failed to load cart items",
+      variant: "destructive"
+    });
+    return [];
   }
-  
-  return {
-    items: [],
-    subtotal: 0,
-    discount: 0,
-    total: 0
-  };
 };
+

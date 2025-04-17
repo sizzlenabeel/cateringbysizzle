@@ -2,88 +2,80 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { useCart } from "@/contexts/CartContext";
-import { menuItems } from "@/data/menuData";
-import { currentCompany } from "@/data/cartData";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ArrowLeft, Trash2, ShoppingBag, FileCheck, Send } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { getMinimumQuantity } from "@/services/menuService";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
+import { loadCartItems, updateCartItemQuantity, removeFromCart } from "@/utils/CartUtils";
+import { menuItems } from "@/data/menuData";
+import { formatPrice } from "@/data/cartData";
 
-const checkoutSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  phone: z.string().min(6, { message: "Please enter a valid phone number" }),
-  address: z.string().min(5, { message: "Please enter a valid address" }),
-  reference: z.string().optional(),
-});
-
-type CheckoutFormValues = z.infer<typeof checkoutSchema>;
+export type CartItem = {
+  id: string;
+  menuId: string;
+  quantity: number;
+  selectedSubProducts: string[];
+  totalPrice: number;
+};
 
 const Cart = () => {
-  const { cart, updateQuantity, removeFromCart, applyDiscountCode, formatPrice } = useCart();
-  const [discountCode, setDiscountCode] = useState("");
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [minimumQuantities, setMinimumQuantities] = useState<Record<string, number>>({});
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const form = useForm<CheckoutFormValues>({
-    resolver: zodResolver(checkoutSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-      reference: "",
-    },
-  });
-
-  // Fetch minimum quantities for all items in the cart
   useEffect(() => {
-    const fetchMinimumQuantities = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    
+    const fetchCart = async () => {
       setIsLoading(true);
-      const minQuantities: Record<string, number> = {};
-      
-      for (const item of cart.items) {
-        try {
-          const minQty = await getMinimumQuantity(item.menuId);
-          minQuantities[item.menuId] = minQty;
-        } catch (error) {
-          console.error(`Failed to get minimum quantity for ${item.menuId}:`, error);
-          minQuantities[item.menuId] = 5; // Default fallback value
-        }
-      }
-      
-      setMinimumQuantities(minQuantities);
+      const items = await loadCartItems();
+      setCartItems(items);
       setIsLoading(false);
     };
-    
-    fetchMinimumQuantities();
-  }, [cart.items]);
 
-  const handleApplyDiscount = () => {
-    applyDiscountCode(discountCode);
+    fetchCart();
+  }, [user, navigate]);
+
+  const handleQuantityChange = async (itemId: string, newQuantity: number) => {
+    if (await updateCartItemQuantity(itemId, newQuantity)) {
+      setCartItems(prevItems => 
+        prevItems.map(item => 
+          item.id === itemId 
+            ? { ...item, quantity: newQuantity }
+            : item
+        )
+      );
+    }
   };
 
-  const onSubmitOrder = (values: CheckoutFormValues) => {
-    toast({
-      title: "Order submitted!",
-      description: "Your order has been placed. You will receive an invoice shortly.",
-    });
-    
-    navigate("/order");
+  const handleRemoveItem = async (itemId: string) => {
+    if (await removeFromCart(itemId)) {
+      setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
+    }
   };
 
-  if (cart.items.length === 0) {
+  const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice * item.quantity, 0);
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-12 px-4">
+          <div className="text-center">
+            Loading cart...
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (cartItems.length === 0) {
     return (
       <Layout>
         <div className="container mx-auto py-12 px-4">
@@ -114,82 +106,72 @@ const Cart = () => {
           Continue Shopping
         </Button>
 
-        <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="pt-6">
-                {isLoading ? (
-                  <div className="text-center py-4">Loading cart items...</div>
-                ) : (
-                  cart.items.map(item => {
-                    const menu = menuItems.find(m => m.id === item.menuId);
-                    if (!menu) return null;
-                    
-                    const minQuantity = minimumQuantities[item.menuId] || 5;
-                    
-                    return (
-                      <div key={item.menuId} className="mb-6 last:mb-0">
-                        <div className="flex flex-col md:flex-row gap-4">
-                          <div className="md:w-1/4 h-24 rounded-md overflow-hidden">
-                            <img 
-                              src={menu.image} 
-                              alt={menu.name} 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="md:w-3/4 flex flex-col justify-between">
-                            <div>
-                              <div className="flex justify-between">
-                                <h3 className="font-semibold text-lg">{menu.name}</h3>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => removeFromCart(item.menuId)}
-                                  className="h-8 w-8 text-red-500"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              
-                              <p className="text-sm text-gray-600 mb-2">
-                                {item.selectedSubProducts.length} items selected
-                              </p>
-                              
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center">
-                                  <span className="text-sm mr-2">Quantity:</span>
-                                  <Input
-                                    type="number"
-                                    min={minQuantity}
-                                    value={item.quantity}
-                                    onChange={(e) => updateQuantity(item.menuId, parseInt(e.target.value))}
-                                    className="w-16 h-8 text-center"
-                                  />
-                                  <span className="text-xs text-gray-500 ml-2">
-                                    Min: {minQuantity}
-                                  </span>
-                                </div>
-                                <div className="font-medium">
-                                  {formatPrice(item.totalPrice * item.quantity)}
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <Link 
-                              to={`/menu/${menu.id}`}
-                              className="text-sm text-purple-600 hover:text-purple-800"
+                {cartItems.map(item => {
+                  const menu = menuItems.find(m => m.id === item.menuId);
+                  if (!menu) return null;
+                  
+                  return (
+                    <div key={item.id} className="mb-6 last:mb-0">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="md:w-1/4">
+                          <img 
+                            src={menu.image} 
+                            alt={menu.name} 
+                            className="w-full h-24 object-cover rounded-md"
+                          />
+                        </div>
+                        <div className="md:w-3/4">
+                          <div className="flex justify-between mb-2">
+                            <h3 className="font-semibold text-lg">{menu.name}</h3>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveItem(item.id)}
+                              className="text-red-500 hover:text-red-600"
                             >
-                              Edit selection
-                            </Link>
+                              Remove
+                            </Button>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="icon"
+                                onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                className="h-8 w-8"
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <Input
+                                type="number"
+                                value={item.quantity}
+                                onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
+                                className="w-16 text-center h-8"
+                                min={1}
+                              />
+                              <Button 
+                                variant="outline" 
+                                size="icon"
+                                onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                className="h-8 w-8"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <span className="font-medium">
+                              {formatPrice(item.totalPrice * item.quantity)}
+                            </span>
                           </div>
                         </div>
-                        <Separator className="mt-4" />
                       </div>
-                    );
-                  })
-                )}
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
           </div>
@@ -198,184 +180,22 @@ const Cart = () => {
             <Card className="sticky top-20">
               <CardContent className="pt-6">
                 <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-                
-                {currentCompany && (
-                  <div className="bg-blue-50 p-3 rounded-md mb-4">
-                    <p className="text-sm font-medium">Company discount applied:</p>
-                    <p className="text-lg font-semibold text-blue-700">
-                      {currentCompany.name} ({currentCompany.discountPercentage}%)
-                    </p>
-                  </div>
-                )}
-                
-                <div className="mb-6">
-                  <div className="flex gap-2 mb-4">
-                    <Input
-                      placeholder="Discount code"
-                      value={discountCode}
-                      onChange={(e) => setDiscountCode(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button 
-                      onClick={handleApplyDiscount}
-                      variant="outline"
-                    >
-                      Apply
-                    </Button>
-                  </div>
-                  
-                  {cart.discountCode && (
-                    <div className="bg-green-50 p-2 rounded text-sm text-green-700">
-                      Code "{cart.discountCode}" applied
-                    </div>
-                  )}
-                </div>
-                
-                <div className="space-y-2 mb-6">
+                <div className="space-y-4">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>{formatPrice(cart.subtotal)}</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
-                  {cart.discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span>-{formatPrice(cart.discount)}</span>
-                    </div>
-                  )}
-                  <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>{formatPrice(cart.total)}</span>
-                  </div>
+                  <Button 
+                    className="w-full bg-orange-600 hover:bg-orange-500"
+                    onClick={() => navigate("/checkout")}
+                  >
+                    Proceed to Checkout
+                  </Button>
                 </div>
-                
-                <Button 
-                  className="w-full bg-orange-600 hover:bg-orange-500"
-                  onClick={() => setIsCheckingOut(true)}
-                >
-                  Proceed to Checkout
-                </Button>
               </CardContent>
             </Card>
           </div>
         </div>
-
-        {isCheckingOut && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <CardContent className="pt-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Checkout</h2>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setIsCheckingOut(false)}
-                  >
-                    Close
-                  </Button>
-                </div>
-                
-                <div className="mb-6 p-4 bg-slate-50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileCheck className="h-5 w-5 text-blue-600" />
-                    <h3 className="font-semibold">Invoice Information</h3>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Your order will be processed and an invoice will be sent to the email address you provide below.
-                  </p>
-                </div>
-                
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmitOrder)} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Contact Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Full name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Email for invoice" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Phone number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="address"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Billing Address</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Billing address" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="reference"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Order Reference (Optional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Project name, department" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="bg-slate-50 p-4 rounded-md mb-4">
-                      <h3 className="font-semibold mb-2">Order Summary</h3>
-                      <div className="flex justify-between">
-                        <span>Total Amount:</span>
-                        <span className="font-bold">{formatPrice(cart.total)}</span>
-                      </div>
-                    </div>
-                    
-                    <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-500 flex items-center gap-2">
-                      <Send className="h-4 w-4" />
-                      Place Order
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </div>
-        )}
       </div>
     </Layout>
   );
