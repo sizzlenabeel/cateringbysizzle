@@ -1,11 +1,8 @@
-
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Mail, MapPin, Phone } from "lucide-react";
-
 const Footer = () => {
-  return (
-    <footer className="bg-catering-primary text-white">
-      <div className="container mx-auto px-4 py-12">
+  return <footer className="bg-catering-primary text-white">
+      <div className="container mx-auto px-4 py-12 bg-orange-600">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="text-xl font-semibold mb-4">Sizzle</h3>
@@ -71,14 +68,12 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="border-t border-gray-800 mt-12 pt-8">
+        <div className="border-t border-gray-800 mt-12 pt-8 bg-slate-50">
           <p className="text-center text-gray-400 text-sm">
             &copy; {new Date().getFullYear()} Sizzle (Kollectiv Kitchens AB). All rights reserved.
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
