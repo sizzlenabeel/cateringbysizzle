@@ -1,3 +1,4 @@
+
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem } from "@/contexts/CartContext";
@@ -129,13 +130,32 @@ export const loadCartItems = async (): Promise<CartItem[]> => {
 
     if (error) throw error;
 
-    return data.map(item => ({
-      id: item.id,
-      menuId: item.menu_id,
-      quantity: item.quantity,
-      selectedSubProducts: item.selected_sub_products.map((sp: any) => String(sp)),
-      totalPrice: Number(item.total_price)
-    }));
+    return data.map(item => {
+      // Handle the selected_sub_products field which might be a JSON string or an array
+      let selectedSubProducts: string[] = [];
+      
+      if (item.selected_sub_products) {
+        if (typeof item.selected_sub_products === 'string') {
+          // If it's a string, parse it
+          try {
+            selectedSubProducts = JSON.parse(item.selected_sub_products);
+          } catch (e) {
+            console.error('Error parsing selected_sub_products', e);
+          }
+        } else if (Array.isArray(item.selected_sub_products)) {
+          // If it's already an array, map each item to string
+          selectedSubProducts = item.selected_sub_products.map(sp => String(sp));
+        }
+      }
+
+      return {
+        id: item.id,
+        menuId: item.menu_id,
+        quantity: item.quantity,
+        selectedSubProducts: selectedSubProducts,
+        totalPrice: Number(item.total_price)
+      };
+    });
   } catch (error) {
     console.error('Error loading cart:', error);
     toast({
