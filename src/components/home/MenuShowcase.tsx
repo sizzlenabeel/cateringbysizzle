@@ -1,7 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+
 const menuCategories = [{
   title: "Breakfast",
   description: "Start the day right with our selection of breakfast options, from continental spreads to hot breakfast buffets.",
@@ -23,7 +26,10 @@ const menuCategories = [{
   image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
   popular: false
 }];
+
 const MenuShowcase = () => {
+  const { user } = useAuth();
+  
   return <section className="py-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:text-center mb-12">
@@ -53,9 +59,9 @@ const MenuShowcase = () => {
                 <p className="text-gray-600 text-sm">{category.description}</p>
               </CardContent>
               <CardFooter>
-                <Link to="/login" className="w-full">
+                <Link to={user ? "/order" : "/login"} className="w-full">
                   <Button className="w-full bg-orange-600 hover:bg-orange-500">
-                    View Menu
+                    {user ? "View Menu" : "Login to Order"}
                   </Button>
                 </Link>
               </CardFooter>

@@ -7,40 +7,99 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Check, Plus, Minus } from "lucide-react";
-import { menuItems, MenuItem, SubProduct, eventTypes } from "@/data/menuData";
+import { ArrowLeft, Check, Plus, Minus, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
-import { getMinimumQuantity } from "@/data/cartData";
+import { getMinimumQuantity } from "@/services/menuService";
+import { supabase } from "@/integrations/supabase/client";
+import { MenuItemWithRelations, SubProduct } from "@/types/supabase";
+import { useQuery } from "@tanstack/react-query";
 
 const MenuCustomization = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addToCart, formatPrice } = useCart();
-  
-  const menuItem = menuItems.find(item => item.id === id);
-  const minimumQuantity = id ? getMinimumQuantity(id) : 5;
 
-  const [customizedMenu, setCustomizedMenu] = useState<{
-    menu: MenuItem | null,
-    selectedSubProducts: string[],
-    totalPrice: number,
-    quantity: number
-  }>({
-    menu: null,
-    selectedSubProducts: [],
-    totalPrice: 0,
-    quantity: minimumQuantity
+  // Fetch the menu item details
+  const { data: menuItem, isLoading } = useQuery({
+    queryKey: ['menuItem', id],
+    queryFn: async () => {
+      if (!id) throw new Error("Menu ID is required");
+      
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select(`
+          *,
+          menu_item_event_types!inner (
+            event_type_id,
+            event_types (*)
+          ),
+          menu_item_serving_styles!inner (
+            serving_style_id,
+            serving_styles (*)
+          ),
+          menu_item_sub_products (
+            is_default,
+            sub_products (*)
+          ),
+          menu_item_categories (
+            category_id,
+            categories (*)
+          )
+        `)
+        .eq("id", id)
+        .single();
+      
+      if (error) throw error;
+      
+      // Transform the data to match our expected format
+      const event_types = data.menu_item_event_types.map((et: any) => et.event_types);
+      const serving_styles = data.menu_item_serving_styles.map((ss: any) => ss.serving_styles);
+      const sub_products = data.menu_item_sub_products.map((sp: any) => ({
+        ...sp.sub_products,
+        is_default: sp.is_default
+      }));
+      const categories = data.menu_item_categories.map((cat: any) => cat.categories);
+      
+      // Remove the nested data and add the flattened arrays
+      const { menu_item_event_types, menu_item_serving_styles, menu_item_sub_products, menu_item_categories, ...menuItemData } = data;
+      
+      return {
+        ...menuItemData,
+        event_types,
+        serving_styles,
+        sub_products,
+        categories
+      };
+    },
+    enabled: !!id
   });
 
+  // Get the minimum quantity for this menu
+  const { data: minimumQuantity = 5, isLoading: isLoadingMinQuantity } = useQuery({
+    queryKey: ['minimumQuantity', id],
+    queryFn: () => id ? getMinimumQuantity(id) : Promise.resolve(5),
+    enabled: !!id
+  });
+  
+  const [customizedMenu, setCustomizedMenu] = useState<{
+    selectedSubProducts: string[];
+    totalPrice: number;
+    quantity: number;
+  }>({
+    selectedSubProducts: [],
+    totalPrice: 0,
+    quantity: 5
+  });
+
+  // Initialize the customized menu when the data is loaded
   useEffect(() => {
     if (menuItem) {
-      const defaultSelectedSubProducts = menuItem.subProducts
-        .filter(subProduct => subProduct.isDefault)
+      const defaultSelectedSubProducts = menuItem.sub_products
+        .filter(subProduct => subProduct.is_default)
         .map(subProduct => subProduct.id);
       
       setCustomizedMenu({
-        menu: menuItem,
         selectedSubProducts: defaultSelectedSubProducts,
         totalPrice: calculateTotalPrice(menuItem, defaultSelectedSubProducts),
         quantity: minimumQuantity
@@ -48,28 +107,28 @@ const MenuCustomization = () => {
     }
   }, [menuItem, minimumQuantity]);
 
-  const calculateTotalPrice = (menu: MenuItem, selectedIds: string[]): number => {
-    const basePrice = menu.basePrice;
+  const calculateTotalPrice = (menu: MenuItemWithRelations, selectedIds: string[]): number => {
+    const basePrice = Number(menu.base_price);
     
-    const defaultSubProducts = menu.subProducts.filter(sp => sp.isDefault);
+    const defaultSubProducts = menu.sub_products.filter(sp => sp.is_default);
     const defaultIds = defaultSubProducts.map(sp => sp.id);
     
     let priceAdjustment = 0;
     
     selectedIds.forEach(id => {
       if (!defaultIds.includes(id)) {
-        const subProduct = menu.subProducts.find(sp => sp.id === id);
+        const subProduct = menu.sub_products.find(sp => sp.id === id);
         if (subProduct) {
-          priceAdjustment += subProduct.price;
+          priceAdjustment += Number(subProduct.price);
         }
       }
     });
     
     defaultIds.forEach(id => {
       if (!selectedIds.includes(id)) {
-        const subProduct = menu.subProducts.find(sp => sp.id === id);
+        const subProduct = menu.sub_products.find(sp => sp.id === id);
         if (subProduct) {
-          priceAdjustment -= subProduct.price;
+          priceAdjustment -= Number(subProduct.price);
         }
       }
     });
@@ -78,7 +137,7 @@ const MenuCustomization = () => {
   };
 
   const toggleSubProduct = (subProductId: string) => {
-    if (!customizedMenu.menu) return;
+    if (!menuItem) return;
     
     const newSelectedSubProducts = customizedMenu.selectedSubProducts.includes(subProductId)
       ? customizedMenu.selectedSubProducts.filter(id => id !== subProductId)
@@ -87,7 +146,7 @@ const MenuCustomization = () => {
     setCustomizedMenu({
       ...customizedMenu,
       selectedSubProducts: newSelectedSubProducts,
-      totalPrice: calculateTotalPrice(customizedMenu.menu, newSelectedSubProducts)
+      totalPrice: calculateTotalPrice(menuItem, newSelectedSubProducts)
     });
   };
 
@@ -107,10 +166,10 @@ const MenuCustomization = () => {
   };
 
   const handleAddToCart = () => {
-    if (!customizedMenu.menu) return;
+    if (!menuItem) return;
     
     addToCart({
-      menuId: customizedMenu.menu.id,
+      menuId: menuItem.id,
       quantity: customizedMenu.quantity,
       selectedSubProducts: customizedMenu.selectedSubProducts,
       totalPrice: customizedMenu.totalPrice
@@ -119,7 +178,20 @@ const MenuCustomization = () => {
     navigate("/cart");
   };
 
-  if (!customizedMenu.menu) {
+  if (isLoading || isLoadingMinQuantity) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-8 px-4 flex justify-center items-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-catering-secondary mx-auto mb-4" />
+            <p className="text-xl text-gray-600">Loading menu details...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!menuItem) {
     return (
       <Layout>
         <div className="container mx-auto py-8 px-4">
@@ -147,24 +219,24 @@ const MenuCustomization = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="h-64 overflow-hidden rounded-lg">
               <img 
-                src={customizedMenu.menu.image} 
-                alt={customizedMenu.menu.name}
+                src={menuItem.image_url || "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666"} 
+                alt={menuItem.name}
                 className="w-full h-full object-cover" 
               />
             </div>
             
             <div className="flex flex-col justify-between">
               <div>
-                <h1 className="text-3xl font-bold mb-2">{customizedMenu.menu.name}</h1>
-                <p className="text-gray-600 mb-4">{customizedMenu.menu.description}</p>
+                <h1 className="text-3xl font-bold mb-2">{menuItem.name}</h1>
+                <p className="text-gray-600 mb-4">{menuItem.description}</p>
                 
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {customizedMenu.menu.eventTypes.map(eventType => (
-                    <span key={eventType} className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
-                      {eventTypes.find(et => et.id === eventType)?.label || eventType}
+                  {menuItem.event_types.map(eventType => (
+                    <span key={eventType.id} className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                      {eventType.name}
                     </span>
                   ))}
-                  {customizedMenu.menu.isVegan && (
+                  {menuItem.is_vegan && (
                     <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
                       Vegan
                     </span>
@@ -242,8 +314,8 @@ const MenuCustomization = () => {
                 <div>
                   <h3 className="font-medium text-lg mb-3">Included Items</h3>
                   <div className="space-y-3">
-                    {customizedMenu.menu.subProducts
-                      .filter(subProduct => subProduct.isDefault)
+                    {menuItem.sub_products
+                      .filter(subProduct => subProduct.is_default)
                       .map(subProduct => (
                         <SubProductItem 
                           key={subProduct.id}
@@ -259,8 +331,8 @@ const MenuCustomization = () => {
                 <div>
                   <h3 className="font-medium text-lg mb-3">Optional Add-ons</h3>
                   <div className="space-y-3">
-                    {customizedMenu.menu.subProducts
-                      .filter(subProduct => !subProduct.isDefault)
+                    {menuItem.sub_products
+                      .filter(subProduct => !subProduct.is_default)
                       .map(subProduct => (
                         <SubProductItem 
                           key={subProduct.id}
@@ -282,7 +354,7 @@ const MenuCustomization = () => {
 };
 
 type SubProductItemProps = {
-  subProduct: SubProduct;
+  subProduct: SubProduct & { is_default: boolean };
   isSelected: boolean;
   onToggle: (id: string) => void;
   formatPrice: (price: number) => string;
@@ -309,7 +381,7 @@ const SubProductItem = ({ subProduct, isSelected, onToggle, formatPrice }: SubPr
             className="font-medium cursor-pointer flex items-center"
           >
             {subProduct.name}
-            {subProduct.isVegan && (
+            {subProduct.is_vegan && (
               <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-100 text-green-800 rounded">
                 Vegan
               </span>
@@ -319,7 +391,7 @@ const SubProductItem = ({ subProduct, isSelected, onToggle, formatPrice }: SubPr
         </div>
       </div>
       <div className="flex items-center">
-        <span className="font-medium text-purple-700">{formatPrice(subProduct.price)}</span>
+        <span className="font-medium text-purple-700">{formatPrice(Number(subProduct.price))}</span>
         {isSelected ? (
           <button 
             onClick={() => onToggle(subProduct.id)}
