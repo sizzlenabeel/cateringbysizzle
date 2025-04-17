@@ -34,14 +34,12 @@ const About = () => {
             <div>
               <h2 className="text-2xl font-bold mb-4">Our Story</h2>
               <p className="text-gray-600 mb-4">
-                Sizzle (Kollectiv Kitchens AB) was founded in 2020 with a powerful vision: to create a platform that connects talented ethnic home-chefs with food enthusiasts while providing meaningful employment opportunities.
-              </p>
+            </p>
               <p className="text-gray-600 mb-4">
                 Our mission focuses on delivering authentic "soul food" through homemade meals prepared by our vetted chefs, fostering cultural culinary experiences. We're particularly proud that 90% of our chefs are women of color from immigrant backgrounds, many of whom had limited employment opportunities in Sweden before joining Sizzle.
               </p>
               <p className="text-gray-600">
-                Today, we've grown to specialize in corporate catering and workplace dining experiences, providing diverse, culturally rich meals that enhance team morale and productivity. Through self-service fridges stocked with fresh meals, workplace food festivals, and themed catering, we're transforming how companies think about food at work.
-              </p>
+            </p>
             </div>
             <div className="rounded-lg overflow-hidden shadow-lg">
               <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80" alt="Our chefs preparing diverse cuisine" className="w-full h-auto" />
