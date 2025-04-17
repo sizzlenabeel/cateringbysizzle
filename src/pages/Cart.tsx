@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { useCart } from "@/contexts/CartContext";
@@ -32,6 +33,8 @@ const Cart = () => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [minimumQuantities, setMinimumQuantities] = useState<Record<string, number>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -43,6 +46,29 @@ const Cart = () => {
       reference: "",
     },
   });
+
+  // Fetch minimum quantities for all items in the cart
+  useEffect(() => {
+    const fetchMinimumQuantities = async () => {
+      setIsLoading(true);
+      const minQuantities: Record<string, number> = {};
+      
+      for (const item of cart.items) {
+        try {
+          const minQty = await getMinimumQuantity(item.menuId);
+          minQuantities[item.menuId] = minQty;
+        } catch (error) {
+          console.error(`Failed to get minimum quantity for ${item.menuId}:`, error);
+          minQuantities[item.menuId] = 5; // Default fallback value
+        }
+      }
+      
+      setMinimumQuantities(minQuantities);
+      setIsLoading(false);
+    };
+    
+    fetchMinimumQuantities();
+  }, [cart.items]);
 
   const handleApplyDiscount = () => {
     applyDiscountCode(discountCode);
@@ -94,72 +120,76 @@ const Cart = () => {
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="pt-6">
-                {cart.items.map(item => {
-                  const menu = menuItems.find(m => m.id === item.menuId);
-                  if (!menu) return null;
-                  
-                  const minQuantity = getMinimumQuantity(menu.id);
-                  
-                  return (
-                    <div key={item.menuId} className="mb-6 last:mb-0">
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <div className="md:w-1/4 h-24 rounded-md overflow-hidden">
-                          <img 
-                            src={menu.image} 
-                            alt={menu.name} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="md:w-3/4 flex flex-col justify-between">
-                          <div>
-                            <div className="flex justify-between">
-                              <h3 className="font-semibold text-lg">{menu.name}</h3>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeFromCart(item.menuId)}
-                                className="h-8 w-8 text-red-500"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            
-                            <p className="text-sm text-gray-600 mb-2">
-                              {item.selectedSubProducts.length} items selected
-                            </p>
-                            
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center">
-                                <span className="text-sm mr-2">Quantity:</span>
-                                <Input
-                                  type="number"
-                                  min={minQuantity}
-                                  value={item.quantity}
-                                  onChange={(e) => updateQuantity(item.menuId, parseInt(e.target.value))}
-                                  className="w-16 h-8 text-center"
-                                />
-                                <span className="text-xs text-gray-500 ml-2">
-                                  Min: {minQuantity}
-                                </span>
-                              </div>
-                              <div className="font-medium">
-                                {formatPrice(item.totalPrice * item.quantity)}
-                              </div>
-                            </div>
+                {isLoading ? (
+                  <div className="text-center py-4">Loading cart items...</div>
+                ) : (
+                  cart.items.map(item => {
+                    const menu = menuItems.find(m => m.id === item.menuId);
+                    if (!menu) return null;
+                    
+                    const minQuantity = minimumQuantities[item.menuId] || 5;
+                    
+                    return (
+                      <div key={item.menuId} className="mb-6 last:mb-0">
+                        <div className="flex flex-col md:flex-row gap-4">
+                          <div className="md:w-1/4 h-24 rounded-md overflow-hidden">
+                            <img 
+                              src={menu.image} 
+                              alt={menu.name} 
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                          
-                          <Link 
-                            to={`/menu/${menu.id}`}
-                            className="text-sm text-purple-600 hover:text-purple-800"
-                          >
-                            Edit selection
-                          </Link>
+                          <div className="md:w-3/4 flex flex-col justify-between">
+                            <div>
+                              <div className="flex justify-between">
+                                <h3 className="font-semibold text-lg">{menu.name}</h3>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeFromCart(item.menuId)}
+                                  className="h-8 w-8 text-red-500"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              
+                              <p className="text-sm text-gray-600 mb-2">
+                                {item.selectedSubProducts.length} items selected
+                              </p>
+                              
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center">
+                                  <span className="text-sm mr-2">Quantity:</span>
+                                  <Input
+                                    type="number"
+                                    min={minQuantity}
+                                    value={item.quantity}
+                                    onChange={(e) => updateQuantity(item.menuId, parseInt(e.target.value))}
+                                    className="w-16 h-8 text-center"
+                                  />
+                                  <span className="text-xs text-gray-500 ml-2">
+                                    Min: {minQuantity}
+                                  </span>
+                                </div>
+                                <div className="font-medium">
+                                  {formatPrice(item.totalPrice * item.quantity)}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <Link 
+                              to={`/menu/${menu.id}`}
+                              className="text-sm text-purple-600 hover:text-purple-800"
+                            >
+                              Edit selection
+                            </Link>
+                          </div>
                         </div>
+                        <Separator className="mt-4" />
                       </div>
-                      <Separator className="mt-4" />
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </CardContent>
             </Card>
           </div>
