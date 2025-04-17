@@ -14,34 +14,37 @@ import OrderFlow from "./pages/OrderFlow";
 import MenuCustomization from "./pages/MenuCustomization";
 import Cart from "./pages/Cart";
 import { CartProvider } from "./contexts/CartContext";
+import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <CartProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/order" element={<OrderFlow />} />
-            <Route path="/menu/:id" element={<MenuCustomization />} />
-            <Route path="/cart" element={<Cart />} />
-            {/* These routes would be implemented when needed */}
-            <Route path="/profile" element={<NotFound />} />
-            <Route path="/order-history" element={<NotFound />} />
-            <Route path="/company-settings" element={<NotFound />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/order" element={<OrderFlow />} />
+              <Route path="/menu/:id" element={<MenuCustomization />} />
+              <Route path="/cart" element={<Cart />} />
+              {/* These routes would be implemented when needed */}
+              <Route path="/profile" element={<NotFound />} />
+              <Route path="/order-history" element={<NotFound />} />
+              <Route path="/company-settings" element={<NotFound />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </CartProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

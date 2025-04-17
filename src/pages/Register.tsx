@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -8,54 +8,104 @@ import { Label } from "@/components/ui/label";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
+import { 
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage 
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+const formSchema = z.object({
+  companyName: z.string().min(2, "Company name must be at least 2 characters"),
+  companyAddress: z.string().min(5, "Address must be at least 5 characters"),
+  contactName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    companyName: "",
-    companyAddress: "",
-    contactName: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-  });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { signUp, createCompany } = useAuth();
+  const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      companyName: "",
+      companyAddress: "",
+      contactName: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    
-    // This is a placeholder for future Supabase registration
-    // When Supabase is integrated, we'll replace this with actual registration logic
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Registration not implemented yet",
-        description: "Please connect Supabase to enable registration features.",
+      // Split contactName into first and last name
+      const nameParts = values.contactName.split(' ');
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(' ') || "";
+
+      // Register user
+      const { error: signUpError } = await signUp(
+        values.email,
+        values.password,
+        {
+          firstName,
+          lastName,
+          phone: values.phone,
+        }
+      );
+
+      if (signUpError) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Create company (will only work if email verification is disabled)
+      const { error: companyError } = await createCompany({
+        companyName: values.companyName,
+        companyAddress: values.companyAddress,
       });
-    } catch (error) {
+
+      if (companyError) {
+        toast({
+          title: "Error creating company",
+          description: companyError.message,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created and you are now logged in.",
+      });
+      
+      // Navigate to order page after successful registration
+      navigate("/order");
+    } catch (error: any) {
       console.error("Registration error:", error);
       toast({
         title: "Registration failed",
-        description: "An error occurred during registration.",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -73,140 +123,159 @@ const Register = () => {
               Register your business to start ordering corporate catering
             </CardDescription>
           </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium">Company Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="companyName">Company Name</Label>
-                    <Input
-                      id="companyName"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)}>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium">Company Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    <FormField
+                      control={form.control}
                       name="companyName"
-                      value={formData.companyName}
-                      onChange={handleChange}
-                      required
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="companyAddress">Company Address</Label>
-                    <Input
-                      id="companyAddress"
+                    <FormField
+                      control={form.control}
                       name="companyAddress"
-                      value={formData.companyAddress}
-                      onChange={handleChange}
-                      required
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Address</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
                 </div>
-              </div>
 
-              <Separator />
+                <Separator />
 
-              <div>
-                <h3 className="text-lg font-medium">Primary Contact</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="contactName">Full Name</Label>
-                    <Input
-                      id="contactName"
+                <div>
+                  <h3 className="text-lg font-medium">Primary Contact</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    <FormField
+                      control={form.control}
                       name="contactName"
-                      value={formData.contactName}
-                      onChange={handleChange}
-                      required
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
+                    <FormField
+                      control={form.control}
                       name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Address</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
+                    <FormField
+                      control={form.control}
                       name="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="tel" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
                 </div>
-              </div>
 
-              <Separator />
+                <Separator />
 
-              <div>
-                <h3 className="text-lg font-medium">Account Security</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
+                <div>
+                  <h3 className="text-lg font-medium">Account Security</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    <FormField
+                      control={form.control}
                       name="password"
-                      type="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="password" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input
-                      id="confirmPassword"
+                    <FormField
+                      control={form.control}
                       name="confirmPassword"
-                      type="password"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      required
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Confirm Password</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="password" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center">
-                <input
-                  id="terms"
-                  name="terms"
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-gray-300 text-catering-secondary focus:ring-catering-secondary"
-                  required
-                />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
-                  I agree to the{" "}
-                  <Link to="/terms" className="text-catering-secondary hover:text-purple-700">
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link to="/privacy" className="text-catering-secondary hover:text-purple-700">
-                    Privacy Policy
+                <div className="flex items-center">
+                  <input
+                    id="terms"
+                    name="terms"
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-gray-300 text-catering-secondary focus:ring-catering-secondary"
+                    required
+                  />
+                  <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
+                    I agree to the{" "}
+                    <Link to="/terms" className="text-catering-secondary hover:text-purple-700">
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link to="/privacy" className="text-catering-secondary hover:text-purple-700">
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col space-y-4">
+                <Button
+                  type="submit"
+                  className="w-full bg-catering-secondary hover:bg-purple-700"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating Account..." : "Create Company Account"}
+                </Button>
+                <p className="text-center text-sm text-gray-600">
+                  Already have an account?{" "}
+                  <Link to="/login" className="text-catering-secondary hover:text-purple-700">
+                    Sign in
                   </Link>
-                </label>
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button
-                type="submit"
-                className="w-full bg-catering-secondary hover:bg-purple-700"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating Account..." : "Create Company Account"}
-              </Button>
-              <p className="text-center text-sm text-gray-600">
-                Already have an account?{" "}
-                <Link to="/login" className="text-catering-secondary hover:text-purple-700">
-                  Sign in
-                </Link>
-              </p>
-            </CardFooter>
-          </form>
+                </p>
+              </CardFooter>
+            </form>
+          </Form>
         </Card>
       </div>
     </Layout>

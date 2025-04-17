@@ -1,9 +1,10 @@
 
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, User, LogOut, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -17,16 +18,21 @@ import {
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { cart } = useCart();
+  const { user, signOut } = useAuth();
   
-  // This would normally be determined by an auth context
-  // For demo purposes, we'll consider the user logged in if they're in the order flow
-  const isLoggedIn = location.pathname === "/order" || 
-                     location.pathname.startsWith("/menu/") ||
-                     location.pathname === "/cart";
+  // A user is logged in if they have a user object
+  const isLoggedIn = !!user;
   
   // Calculate total items in cart
   const cartItemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleLogout = async () => {
+    await signOut();
+    setIsMenuOpen(false);
+    navigate("/");
+  };
   
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
@@ -97,11 +103,17 @@ const Navbar = () => {
                       )}
                     </Button>
                   </Link>
-                  <Button variant="ghost" className="flex items-center gap-2 mr-2">
-                    <User className="h-4 w-4" />
-                    Profile
-                  </Button>
-                  <Button variant="ghost" className="flex items-center gap-2">
+                  <Link to="/profile">
+                    <Button variant="ghost" className="flex items-center gap-2 mr-2">
+                      <User className="h-4 w-4" />
+                      Profile
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center gap-2"
+                    onClick={handleLogout}
+                  >
                     <LogOut className="h-4 w-4" />
                     Log out
                   </Button>
@@ -165,7 +177,8 @@ const Navbar = () => {
       </div>
 
       {/* Mobile menu, show/hide based on menu state */}
-      {isMenuOpen && <div className="md:hidden bg-white shadow-lg rounded-b-lg">
+      {isMenuOpen && (
+        <div className="md:hidden bg-white shadow-lg rounded-b-lg">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {isLoggedIn && (
               <>
@@ -182,7 +195,10 @@ const Navbar = () => {
                   Contact
                 </Link>
                 <div className="border-t border-gray-200 mt-4 pt-4">
-                  <button className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                  <button 
+                    className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-gray-700 hover:bg-gray-50"
+                    onClick={handleLogout}
+                  >
                     Log out
                   </button>
                 </div>
@@ -211,7 +227,8 @@ const Navbar = () => {
               </>
             )}
           </div>
-        </div>}
+        </div>
+      )}
     </nav>
   );
 };
