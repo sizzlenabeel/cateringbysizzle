@@ -19,14 +19,14 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { cart } = useCart();
+  const { cartItems } = useCart();
   const { user, signOut } = useAuth();
   
   // A user is logged in if they have a user object
   const isLoggedIn = !!user;
   
   // Calculate total items in cart
-  const cartItemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleLogout = async () => {
     await signOut();

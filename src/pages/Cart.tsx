@@ -1,67 +1,24 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
-import { loadCartItems, updateCartItemQuantity, removeFromCart } from "@/utils/CartUtils";
+import { useCart } from "@/contexts/CartContext";
 import { menuItems } from "@/data/menuData";
-import { formatPrice } from "@/data/cartData";
-
-export type CartItem = {
-  id: string;
-  menuId: string;
-  quantity: number;
-  selectedSubProducts: string[];
-  totalPrice: number;
-};
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { cartItems, isLoading, updateQuantity, removeItem, subtotal, formatPrice } = useCart();
 
   useEffect(() => {
     if (!user) {
       navigate("/login");
-      return;
     }
-    
-    const fetchCart = async () => {
-      setIsLoading(true);
-      const items = await loadCartItems();
-      setCartItems(items);
-      setIsLoading(false);
-    };
-
-    fetchCart();
   }, [user, navigate]);
-
-  const handleQuantityChange = async (itemId: string, newQuantity: number) => {
-    if (await updateCartItemQuantity(itemId, newQuantity)) {
-      setCartItems(prevItems => 
-        prevItems.map(item => 
-          item.id === itemId 
-            ? { ...item, quantity: newQuantity }
-            : item
-        )
-      );
-    }
-  };
-
-  const handleRemoveItem = async (itemId: string) => {
-    if (await removeFromCart(itemId)) {
-      setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
-    }
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice * item.quantity, 0);
 
   if (isLoading) {
     return (
@@ -130,7 +87,7 @@ const Cart = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleRemoveItem(item.id)}
+                              onClick={() => removeItem(item.id)}
                               className="text-red-500 hover:text-red-600"
                             >
                               Remove
@@ -142,7 +99,7 @@ const Cart = () => {
                               <Button 
                                 variant="outline" 
                                 size="icon"
-                                onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                 className="h-8 w-8"
                               >
                                 <Minus className="h-4 w-4" />
@@ -150,14 +107,14 @@ const Cart = () => {
                               <Input
                                 type="number"
                                 value={item.quantity}
-                                onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
+                                onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
                                 className="w-16 text-center h-8"
                                 min={1}
                               />
                               <Button 
                                 variant="outline" 
                                 size="icon"
-                                onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                 className="h-8 w-8"
                               >
                                 <Plus className="h-4 w-4" />

@@ -1,12 +1,12 @@
 
-import { Cart, CartItem, calculateCartTotals, currentCompany } from "@/data/cartData";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { CartItem } from "@/contexts/CartContext";
 
 /**
  * Add an item to the cart
  */
-export const addToCart = async (item: CartItem): Promise<boolean> => {
+export const addToCart = async (item: Omit<CartItem, 'id'>): Promise<boolean> => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) {
     toast({
@@ -134,7 +134,9 @@ export const loadCartItems = async (): Promise<CartItem[]> => {
       id: item.id,
       menuId: item.menu_id,
       quantity: item.quantity,
-      selectedSubProducts: item.selected_sub_products,
+      selectedSubProducts: Array.isArray(item.selected_sub_products) 
+        ? item.selected_sub_products 
+        : [],
       totalPrice: Number(item.total_price)
     }));
   } catch (error) {
@@ -147,4 +149,3 @@ export const loadCartItems = async (): Promise<CartItem[]> => {
     return [];
   }
 };
-

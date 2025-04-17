@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Check, Plus, Minus, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { getMinimumQuantity } from "@/services/menuService";
@@ -17,7 +17,7 @@ const MenuCustomization = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { addToCart, formatPrice } = useCart();
+  const { addItemToCart, formatPrice } = useCart();
 
   // Fetch the menu item details
   const { data: menuItem, isLoading } = useQuery({
@@ -161,7 +161,7 @@ const MenuCustomization = () => {
   const handleAddToCart = () => {
     if (!menuItem) return;
     
-    addToCart({
+    addItemToCart({
       menuId: menuItem.id,
       quantity: customizedMenu.quantity,
       selectedSubProducts: customizedMenu.selectedSubProducts,
