@@ -47,3 +47,31 @@ export const initialCart: Cart = {
   discount: 0,
   total: 0
 };
+
+// Export the functions and data that are referenced in CartContext and Cart components
+export const discountCodes: DiscountCode[] = [
+  {
+    id: "1",
+    code: "WELCOME10",
+    percentage: 10,
+    validUntil: new Date(2025, 11, 31),
+    isActive: true
+  },
+  {
+    id: "2",
+    code: "SUMMER20",
+    percentage: 20,
+    validUntil: new Date(2025, 8, 30),
+    isActive: true
+  }
+];
+
+// Sample company for demonstration purposes
+export const currentCompany: Company | null = {
+  id: "1",
+  name: "Acme Corp",
+  discountPercentage: 15
+};
+
+// Re-export getMinimumQuantity from menuService
+export { getMinimumQuantity };

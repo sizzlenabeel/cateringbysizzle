@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { useCart } from "@/contexts/CartContext";
 import { menuItems } from "@/data/menuData";
-import { currentCompany, getMinimumQuantity } from "@/data/cartData";
+import { currentCompany } from "@/data/cartData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +14,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { getMinimumQuantity } from "@/services/menuService";
 
 const checkoutSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -49,13 +49,11 @@ const Cart = () => {
   };
 
   const onSubmitOrder = (values: CheckoutFormValues) => {
-    // In a real app, we would send the order to the backend
     toast({
       title: "Order submitted!",
       description: "Your order has been placed. You will receive an invoice shortly.",
     });
     
-    // Redirect to a confirmation page (would create in a real app)
     navigate("/order");
   };
 
@@ -93,7 +91,6 @@ const Cart = () => {
         <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="pt-6">
@@ -167,7 +164,6 @@ const Cart = () => {
             </Card>
           </div>
 
-          {/* Order Summary */}
           <div>
             <Card className="sticky top-20">
               <CardContent className="pt-6">
@@ -182,7 +178,6 @@ const Cart = () => {
                   </div>
                 )}
                 
-                {/* Discount Code */}
                 <div className="mb-6">
                   <div className="flex gap-2 mb-4">
                     <Input
@@ -206,7 +201,6 @@ const Cart = () => {
                   )}
                 </div>
                 
-                {/* Price Summary */}
                 <div className="space-y-2 mb-6">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
@@ -236,7 +230,6 @@ const Cart = () => {
           </div>
         </div>
 
-        {/* Checkout Form */}
         {isCheckingOut && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
