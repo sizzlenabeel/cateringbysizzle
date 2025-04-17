@@ -4,14 +4,24 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, User, LogOut, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { cart } = useCart();
   
-  // Check if we're in the order flow or menu customization
-  const isOrderFlow = location.pathname === "/order" || 
+  // This would normally be determined by an auth context
+  // For demo purposes, we'll consider the user logged in if they're in the order flow
+  const isLoggedIn = location.pathname === "/order" || 
                      location.pathname.startsWith("/menu/") ||
                      location.pathname === "/cart";
   
@@ -32,9 +42,50 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <div className="ml-4 flex items-center">
-              {isOrderFlow ? (
-                <>
+            {isLoggedIn ? (
+              <>
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <Link to="/order">
+                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                          Order Menu
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger>My Account</NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-[200px] gap-3 p-4">
+                          <li>
+                            <Link to="/profile" className="block p-2 hover:bg-gray-100 rounded-md">
+                              Profile Settings
+                            </Link>
+                          </li>
+                          <li>
+                            <Link to="/order-history" className="block p-2 hover:bg-gray-100 rounded-md">
+                              Order History
+                            </Link>
+                          </li>
+                          <li>
+                            <Link to="/company-settings" className="block p-2 hover:bg-gray-100 rounded-md">
+                              Company Settings
+                            </Link>
+                          </li>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <Link to="/contact">
+                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                          Contact
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+                
+                <div className="ml-4 flex items-center">
                   <Link to="/cart">
                     <Button variant="ghost" className="flex items-center gap-2 mr-4 relative">
                       <ShoppingCart className="h-4 w-4" />
@@ -54,9 +105,30 @@ const Navbar = () => {
                     <LogOut className="h-4 w-4" />
                     Log out
                   </Button>
-                </>
-              ) : (
-                <>
+                </div>
+              </>
+            ) : (
+              <>
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <Link to="/about">
+                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                          About Us
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <Link to="/contact">
+                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                          Contact
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+                
+                <div className="ml-4 flex items-center">
                   <Link to="/login">
                     <Button variant="outline" className="mr-2">
                       Log in
@@ -67,14 +139,14 @@ const Navbar = () => {
                       Register
                     </Button>
                   </Link>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            {isOrderFlow && (
+            {isLoggedIn && (
               <Link to="/cart" className="mr-4 relative">
                 <ShoppingCart className="h-6 w-6" />
                 {cartItemCount > 0 && (
@@ -95,35 +167,49 @@ const Navbar = () => {
       {/* Mobile menu, show/hide based on menu state */}
       {isMenuOpen && <div className="md:hidden bg-white shadow-lg rounded-b-lg">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <div className="pt-4 pb-3 border-t border-gray-200">
-              <div className="flex items-center px-5">
-                {isOrderFlow ? (
-                  <>
-                    <Link to="/cart" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary mb-3" onClick={() => setIsMenuOpen(false)}>
-                      Cart
-                      {cartItemCount > 0 && ` (${cartItemCount})`}
-                    </Link>
-                    <button className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary mb-3" onClick={() => setIsMenuOpen(false)}>
-                      Profile
-                    </button>
-                    <button className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary" onClick={() => setIsMenuOpen(false)}>
-                      Log out
-                    </button>
-                  </>
-                ) : (
-                  <Link to="/login" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary" onClick={() => setIsMenuOpen(false)}>
-                    Log in
-                  </Link>
-                )}
-              </div>
-              {!isOrderFlow && (
-                <div className="mt-3 px-5">
-                  <Link to="/register" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-white bg-catering-secondary" onClick={() => setIsMenuOpen(false)}>
-                    Register
-                  </Link>
+            {isLoggedIn && (
+              <>
+                <Link to="/order" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                  Order Menu
+                </Link>
+                <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                  Profile Settings
+                </Link>
+                <Link to="/order-history" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                  Order History
+                </Link>
+                <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                  Contact
+                </Link>
+                <div className="border-t border-gray-200 mt-4 pt-4">
+                  <button className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                    Log out
+                  </button>
                 </div>
-              )}
-            </div>
+              </>
+            )}
+            {!isLoggedIn && (
+              <>
+                <Link to="/about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                  About Us
+                </Link>
+                <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                  Contact
+                </Link>
+                <div className="pt-4 pb-3 border-t border-gray-200">
+                  <div className="flex items-center px-5">
+                    <Link to="/login" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary" onClick={() => setIsMenuOpen(false)}>
+                      Log in
+                    </Link>
+                  </div>
+                  <div className="mt-3 px-5">
+                    <Link to="/register" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-white bg-catering-secondary" onClick={() => setIsMenuOpen(false)}>
+                      Register
+                    </Link>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>}
     </nav>

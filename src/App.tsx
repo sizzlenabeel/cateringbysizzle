@@ -33,6 +33,10 @@ const App = () => (
             <Route path="/order" element={<OrderFlow />} />
             <Route path="/menu/:id" element={<MenuCustomization />} />
             <Route path="/cart" element={<Cart />} />
+            {/* These routes would be implemented when needed */}
+            <Route path="/profile" element={<NotFound />} />
+            <Route path="/order-history" element={<NotFound />} />
+            <Route path="/company-settings" element={<NotFound />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
