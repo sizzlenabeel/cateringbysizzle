@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,9 @@ import MenuCustomization from "./pages/MenuCustomization";
 import Cart from "./pages/Cart";
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import Profile from "./pages/Profile";
+import OrderHistory from "./pages/OrderHistory";
+import CompanySettings from "./pages/CompanySettings";
 
 const queryClient = new QueryClient();
 
@@ -35,11 +37,9 @@ const App = () => (
               <Route path="/order" element={<OrderFlow />} />
               <Route path="/menu/:id" element={<MenuCustomization />} />
               <Route path="/cart" element={<Cart />} />
-              {/* These routes would be implemented when needed */}
-              <Route path="/profile" element={<NotFound />} />
-              <Route path="/order-history" element={<NotFound />} />
-              <Route path="/company-settings" element={<NotFound />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/order-history" element={<OrderHistory />} />
+              <Route path="/company-settings" element={<CompanySettings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
