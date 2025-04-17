@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -7,17 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Check, Plus, Minus } from "lucide-react";
-import { menuItems, MenuItem, SubProduct } from "@/data/menuData";
+import { menuItems, MenuItem, SubProduct, eventTypes } from "@/data/menuData";
 
 const MenuCustomization = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Find the menu item from our data
   const menuItem = menuItems.find(item => item.id === id);
 
-  // State for the customized menu
   const [customizedMenu, setCustomizedMenu] = useState<{
     menu: MenuItem | null,
     selectedSubProducts: string[],
@@ -28,7 +25,6 @@ const MenuCustomization = () => {
     totalPrice: 0,
   });
 
-  // Initialize menu and selected sub-products
   useEffect(() => {
     if (menuItem) {
       const defaultSelectedSubProducts = menuItem.subProducts
@@ -43,18 +39,14 @@ const MenuCustomization = () => {
     }
   }, [menuItem]);
 
-  // Calculate total price based on selected sub-products
   const calculateTotalPrice = (menu: MenuItem, selectedIds: string[]): number => {
     const basePrice = menu.basePrice;
     
-    // Get the default sub-products
     const defaultSubProducts = menu.subProducts.filter(sp => sp.isDefault);
     const defaultIds = defaultSubProducts.map(sp => sp.id);
     
-    // Calculate price adjustments
     let priceAdjustment = 0;
     
-    // For each selected sub-product that is not default, add its price
     selectedIds.forEach(id => {
       if (!defaultIds.includes(id)) {
         const subProduct = menu.subProducts.find(sp => sp.id === id);
@@ -64,7 +56,6 @@ const MenuCustomization = () => {
       }
     });
     
-    // For each default sub-product that is not selected, subtract its price
     defaultIds.forEach(id => {
       if (!selectedIds.includes(id)) {
         const subProduct = menu.subProducts.find(sp => sp.id === id);
@@ -77,13 +68,12 @@ const MenuCustomization = () => {
     return basePrice + priceAdjustment;
   };
 
-  // Toggle a sub-product selection
   const toggleSubProduct = (subProductId: string) => {
     if (!customizedMenu.menu) return;
     
     const newSelectedSubProducts = customizedMenu.selectedSubProducts.includes(subProductId)
-      ? customizedMenu.selectedSubProducts.filter(id => id !== subProductId) // Remove
-      : [...customizedMenu.selectedSubProducts, subProductId]; // Add
+      ? customizedMenu.selectedSubProducts.filter(id => id !== subProductId)
+      : [...customizedMenu.selectedSubProducts, subProductId];
     
     setCustomizedMenu({
       ...customizedMenu,
@@ -92,13 +82,11 @@ const MenuCustomization = () => {
     });
   };
 
-  // Handle adding to cart
   const handleAddToCart = () => {
     toast({
       title: "Menu added to order",
       description: "Your customized menu has been added to your order.",
     });
-    // In a real app, we would add to cart in state or database
     navigate("/order");
   };
 
@@ -116,7 +104,6 @@ const MenuCustomization = () => {
     <Layout>
       <div className="container mx-auto py-8 px-4">
         <div className="flex flex-col space-y-6">
-          {/* Back button */}
           <div>
             <Button 
               variant="ghost" 
@@ -128,9 +115,7 @@ const MenuCustomization = () => {
             </Button>
           </div>
           
-          {/* Menu Header */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Menu Image */}
             <div className="h-64 overflow-hidden rounded-lg">
               <img 
                 src={customizedMenu.menu.image} 
@@ -139,7 +124,6 @@ const MenuCustomization = () => {
               />
             </div>
             
-            {/* Menu Details */}
             <div className="flex flex-col justify-between">
               <div>
                 <h1 className="text-3xl font-bold mb-2">{customizedMenu.menu.name}</h1>
@@ -177,7 +161,6 @@ const MenuCustomization = () => {
             </div>
           </div>
           
-          {/* Customization Section */}
           <Card>
             <CardContent className="pt-6">
               <h2 className="text-xl font-semibold mb-4">Customize Your Menu</h2>
@@ -186,7 +169,6 @@ const MenuCustomization = () => {
               </p>
               
               <div className="space-y-6">
-                {/* Default Items */}
                 <div>
                   <h3 className="font-medium text-lg mb-3">Included Items</h3>
                   <div className="space-y-3">
@@ -203,7 +185,6 @@ const MenuCustomization = () => {
                   </div>
                 </div>
                 
-                {/* Optional Items */}
                 <div>
                   <h3 className="font-medium text-lg mb-3">Optional Add-ons</h3>
                   <div className="space-y-3">
@@ -228,7 +209,6 @@ const MenuCustomization = () => {
   );
 };
 
-// Sub-product item component
 type SubProductItemProps = {
   subProduct: SubProduct;
   isSelected: boolean;
