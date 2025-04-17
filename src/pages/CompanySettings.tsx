@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,19 +7,81 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Building, Pencil } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const CompanySettings = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     companyName: "",
     address: "",
+    discountPercentage: "",
   });
+
+  useEffect(() => {
+    const loadCompanyData = async () => {
+      if (!user?.id) return;
+
+      // First get the user's profile to get the company_id
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.company_id) return;
+
+      // Then get the company details
+      const { data: company, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', profile.company_id)
+        .single();
+
+      if (error) {
+        console.error('Error loading company:', error);
+        return;
+      }
+
+      if (company) {
+        setFormData({
+          companyName: company.name,
+          address: company.address,
+          discountPercentage: company.discount_percentage?.toString() || "0",
+        });
+      }
+    };
+
+    loadCompanyData();
+  }, [user?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Update company details implementation would go here
+      // Get company_id from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user?.id)
+        .single();
+
+      if (!profile?.company_id) {
+        throw new Error('No company associated with this user');
+      }
+
+      const { error } = await supabase
+        .from('companies')
+        .update({
+          name: formData.companyName,
+          address: formData.address,
+          discount_percentage: parseInt(formData.discountPercentage) || 0,
+        })
+        .eq('id', profile.company_id);
+
+      if (error) throw error;
+
       toast({
         title: "Company updated",
         description: "Company details have been successfully updated.",
@@ -72,6 +134,20 @@ const CompanySettings = () => {
                   value={formData.address}
                   onChange={(e) =>
                     setFormData({ ...formData, address: e.target.value })
+                  }
+                  readOnly={!isEditing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="discountPercentage">Discount Percentage</Label>
+                <Input
+                  id="discountPercentage"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.discountPercentage}
+                  onChange={(e) =>
+                    setFormData({ ...formData, discountPercentage: e.target.value })
                   }
                   readOnly={!isEditing}
                 />
