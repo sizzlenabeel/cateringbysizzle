@@ -1,5 +1,5 @@
 
-import { GlobeIcon, HeartIcon, ChefHatIcon, DocumentCheckIcon } from "lucide-react";
+import { GlobeIcon, HeartIcon, ChefHatIcon, ClipboardCheckIcon } from "lucide-react";
 
 const features = [
   {
@@ -24,7 +24,7 @@ const features = [
     name: "Sustainable Sourcing",
     description:
       "Commitment to local, sustainable ingredients that support community food ecosystems.",
-    icon: DocumentCheckIcon,
+    icon: ClipboardCheckIcon,
   },
 ];
 
