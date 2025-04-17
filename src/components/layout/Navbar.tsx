@@ -1,11 +1,18 @@
 
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, User, LogOut } from "lucide-react";
 import { useState } from "react";
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  return <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
+  const location = useLocation();
+  
+  // Check if we're in the order flow
+  const isOrderFlow = location.pathname === "/order";
+  
+  return (
+    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0 flex items-center">
@@ -19,16 +26,31 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             <div className="ml-4 flex items-center">
-              <Link to="/login">
-                <Button variant="outline" className="mr-2">
-                  Log in
-                </Button>
-              </Link>
-              <Link to="/register">
-                <Button className="text-white bg-orange-600 hover:bg-orange-500">
-                  Register
-                </Button>
-              </Link>
+              {isOrderFlow ? (
+                <>
+                  <Button variant="ghost" className="flex items-center gap-2 mr-2">
+                    <User className="h-4 w-4" />
+                    Profile
+                  </Button>
+                  <Button variant="ghost" className="flex items-center gap-2">
+                    <LogOut className="h-4 w-4" />
+                    Log out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <Button variant="outline" className="mr-2">
+                      Log in
+                    </Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button className="text-white bg-orange-600 hover:bg-orange-500">
+                      Register
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -47,18 +69,33 @@ const Navbar = () => {
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="flex items-center px-5">
-                <Link to="/login" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary" onClick={() => setIsMenuOpen(false)}>
-                  Log in
-                </Link>
+                {isOrderFlow ? (
+                  <>
+                    <button className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary mb-3" onClick={() => setIsMenuOpen(false)}>
+                      Profile
+                    </button>
+                    <button className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary" onClick={() => setIsMenuOpen(false)}>
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <Link to="/login" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary" onClick={() => setIsMenuOpen(false)}>
+                    Log in
+                  </Link>
+                )}
               </div>
-              <div className="mt-3 px-5">
-                <Link to="/register" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-white bg-catering-secondary" onClick={() => setIsMenuOpen(false)}>
-                  Register
-                </Link>
-              </div>
+              {!isOrderFlow && (
+                <div className="mt-3 px-5">
+                  <Link to="/register" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-white bg-catering-secondary" onClick={() => setIsMenuOpen(false)}>
+                    Register
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>}
-    </nav>;
+    </nav>
+  );
 };
+
 export default Navbar;

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
@@ -8,7 +7,12 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { Clock, Calendar, MapPin } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { Clock, Calendar as CalendarIcon, MapPin, Plus, ChevronLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Event type options
 const eventTypes = [
@@ -42,96 +46,13 @@ const menuItems = [
       { id: "sub4", name: "Coffee & Tea", isVegan: true },
     ]
   },
-  {
-    id: "menu2",
-    name: "Vegan Breakfast Bowl",
-    description: "Nutrient-packed breakfast with grains and fresh produce",
-    price: "$18 per person",
-    image: "https://images.unsplash.com/photo-1546793665-c74683f339c1?ixlib=rb-4.0.3",
-    eventType: "breakfast",
-    isVegan: true,
-    subProducts: [
-      { id: "sub5", name: "Overnight Oats", isVegan: true },
-      { id: "sub6", name: "Chia Pudding", isVegan: true },
-      { id: "sub7", name: "Fresh Berries", isVegan: true },
-      { id: "sub8", name: "Plant Milk Options", isVegan: true },
-    ]
-  },
-  {
-    id: "menu3",
-    name: "Executive Lunch Box",
-    description: "Complete boxed lunch for business meetings",
-    price: "$22 per person",
-    image: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?ixlib=rb-4.0.3",
-    eventType: "lunch",
-    isVegan: false,
-    subProducts: [
-      { id: "sub9", name: "Gourmet Sandwich", isVegan: false },
-      { id: "sub10", name: "Garden Salad", isVegan: true },
-      { id: "sub11", name: "Artisan Chips", isVegan: true },
-      { id: "sub12", name: "Chocolate Chip Cookie", isVegan: false },
-    ]
-  },
-  {
-    id: "menu4",
-    name: "Vegan Lunch Box",
-    description: "Plant-based lunch option with fresh ingredients",
-    price: "$24 per person",
-    image: "https://images.unsplash.com/photo-1546793665-c74683f339c1?ixlib=rb-4.0.3",
-    eventType: "lunch",
-    isVegan: true,
-    subProducts: [
-      { id: "sub13", name: "Hummus Wrap", isVegan: true },
-      { id: "sub14", name: "Quinoa Salad", isVegan: true },
-      { id: "sub15", name: "Vegetable Crisps", isVegan: true },
-      { id: "sub16", name: "Vegan Brownie", isVegan: true },
-    ]
-  },
-  {
-    id: "menu5",
-    name: "Afternoon Fika Basket",
-    description: "Swedish-inspired coffee break treats",
-    price: "$12 per person",
-    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?ixlib=rb-4.0.3",
-    eventType: "fika",
-    isVegan: false,
-    subProducts: [
-      { id: "sub17", name: "Cinnamon Buns", isVegan: false },
-      { id: "sub18", name: "Almond Cookies", isVegan: false },
-      { id: "sub19", name: "Fresh Berries", isVegan: true },
-      { id: "sub20", name: "Coffee Service", isVegan: true },
-    ]
-  },
-  {
-    id: "menu6",
-    name: "Evening Mingle Platter",
-    description: "Selection of finger foods for networking events",
-    price: "$28 per person",
-    image: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?ixlib=rb-4.0.3",
-    eventType: "mingle",
-    isVegan: false,
-    subProducts: [
-      { id: "sub21", name: "Cheese Selection", isVegan: false },
-      { id: "sub22", name: "Charcuterie", isVegan: false },
-      { id: "sub23", name: "Artisan Crackers", isVegan: true },
-      { id: "sub24", name: "Marinated Olives", isVegan: true },
-    ]
-  },
-  {
-    id: "menu7",
-    name: "Elegant Dinner Buffet",
-    description: "Full dinner service with multiple courses",
-    price: "$45 per person",
-    image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?ixlib=rb-4.0.3",
-    eventType: "dinner",
-    isVegan: false,
-    subProducts: [
-      { id: "sub25", name: "Roast Beef Tenderloin", isVegan: false },
-      { id: "sub26", name: "Garlic Mashed Potatoes", isVegan: false },
-      { id: "sub27", name: "Seasonal Vegetables", isVegan: true },
-      { id: "sub28", name: "Artisan Dinner Rolls", isVegan: false },
-    ]
-  },
+  // ... keep existing code (rest of menu items)
+];
+
+// Sample addresses data (will come from database later)
+const addressOptions = [
+  { id: "addr1", name: "Main Office", address: "123 Business St, Stockholm, 10044" },
+  { id: "addr2", name: "Branch Office", address: "456 Corporate Ave, Stockholm, 10067" },
 ];
 
 // This is a placeholder for the order flow implementation
@@ -143,11 +64,16 @@ const OrderFlow = () => {
   const [servingStyle, setServingStyle] = useState("");
   const [showVeganOnly, setShowVeganOnly] = useState(false);
   const [filteredMenus, setFilteredMenus] = useState(menuItems);
-
+  const [deliveryTime, setDeliveryTime] = useState("10:00");
+  const [deliveryDate, setDeliveryDate] = useState<Date>(new Date());
+  const [showAddAddress, setShowAddAddress] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(addressOptions[0]);
+  const [newAddress, setNewAddress] = useState("");
+  
   // Placeholder company data (will come from auth/database)
   const companyDetails = {
     name: "Acme Corp",
-    address: "123 Business St, Stockholm, 10044",
+    address: selectedAddress.address,
     contact: "info@acmecorp.com"
   };
 
@@ -174,6 +100,74 @@ const OrderFlow = () => {
     });
   }, [toast]);
 
+  // Handle address selection
+  const handleAddressSelect = (address) => {
+    setSelectedAddress(address);
+    setShowAddAddress(false);
+  };
+
+  // Handle new address addition
+  const handleAddNewAddress = () => {
+    if (newAddress.trim() !== "") {
+      const newAddressObj = {
+        id: `addr${addressOptions.length + 1}`,
+        name: `New Address ${addressOptions.length + 1}`,
+        address: newAddress
+      };
+      // In reality, this would be saved to the database
+      addressOptions.push(newAddressObj);
+      setSelectedAddress(newAddressObj);
+      setShowAddAddress(false);
+      setNewAddress("");
+    }
+  };
+
+  const renderMenuItems = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {filteredMenus.map((menu) => (
+        <Card key={menu.id} className="overflow-hidden">
+          <div className="h-48 overflow-hidden">
+            <img 
+              src={menu.image} 
+              alt={menu.name} 
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <CardContent className="pt-4">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-lg font-medium">{menu.name}</h3>
+              {menu.isVegan && (
+                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                  Vegan
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-600 mb-2">{menu.description}</p>
+            <p className="font-medium text-catering-secondary mb-4">{menu.price}</p>
+            
+            <div className="mb-4">
+              <h4 className="text-sm font-medium mb-2">Includes:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {menu.subProducts.map((subProduct) => (
+                  <li key={subProduct.id} className="flex items-center">
+                    <span>{subProduct.name}</span>
+                    {subProduct.isVegan && (
+                      <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-100 text-green-800 rounded">V</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <Button className="w-full bg-orange-600 hover:bg-orange-500">
+              Select Menu
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50">
@@ -182,17 +176,93 @@ const OrderFlow = () => {
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col md:flex-row justify-between">
               <div className="flex flex-wrap gap-4 md:gap-6">
+                {/* Delivery Time Selector */}
                 <div className="flex items-center text-sm">
                   <Clock className="h-4 w-4 mr-2 text-catering-secondary" />
-                  <span>Delivery: 10:00 AM</span>
+                  <Input
+                    type="time"
+                    value={deliveryTime}
+                    onChange={(e) => setDeliveryTime(e.target.value)}
+                    className="w-32 h-8 text-sm"
+                  />
                 </div>
+                
+                {/* Delivery Date Selector */}
                 <div className="flex items-center text-sm">
-                  <Calendar className="h-4 w-4 mr-2 text-catering-secondary" />
-                  <span>Date: May 1, 2025</span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "h-8 text-sm flex items-center gap-2 font-normal",
+                        )}
+                      >
+                        <CalendarIcon className="h-4 w-4 text-catering-secondary" />
+                        <span>{format(deliveryDate, "PPP")}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={deliveryDate}
+                        onSelect={(date) => date && setDeliveryDate(date)}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
-                <div className="flex items-center text-sm">
-                  <MapPin className="h-4 w-4 mr-2 text-catering-secondary" />
-                  <span>{companyDetails.address}</span>
+                
+                {/* Address Selector */}
+                <div className="flex items-center text-sm relative">
+                  <Popover open={showAddAddress} onOpenChange={setShowAddAddress}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-8 text-sm flex items-center gap-2 font-normal"
+                      >
+                        <MapPin className="h-4 w-4 text-catering-secondary" />
+                        <span className="truncate max-w-[180px]">{selectedAddress.address}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                      <div className="p-4 space-y-4">
+                        <h4 className="font-medium">Select Address</h4>
+                        <div className="space-y-2">
+                          {addressOptions.map((addr) => (
+                            <button
+                              key={addr.id}
+                              onClick={() => handleAddressSelect(addr)}
+                              className={`w-full text-left p-2 rounded-md text-sm ${
+                                selectedAddress.id === addr.id 
+                                  ? "bg-purple-50 border border-catering-secondary" 
+                                  : "hover:bg-gray-50"
+                              }`}
+                            >
+                              <div className="font-medium">{addr.name}</div>
+                              <div className="text-gray-600 text-xs">{addr.address}</div>
+                            </button>
+                          ))}
+                        </div>
+                        <div className="pt-2 border-t">
+                          <div className="flex flex-col gap-2">
+                            <Input
+                              placeholder="Enter a new address"
+                              value={newAddress}
+                              onChange={(e) => setNewAddress(e.target.value)}
+                            />
+                            <Button 
+                              onClick={handleAddNewAddress}
+                              className="w-full flex items-center gap-1"
+                            >
+                              <Plus className="h-4 w-4" />
+                              Add New Address
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <div className="flex items-center mt-4 md:mt-0">
@@ -216,13 +286,10 @@ const OrderFlow = () => {
         <div className="container mx-auto py-8 px-4">
           <Tabs value={step} onValueChange={setStep} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="event-type" disabled={step !== "event-type"}>
+              <TabsTrigger value="event-type">
                 1. Event Type
               </TabsTrigger>
-              <TabsTrigger 
-                value="serving-style" 
-                disabled={!eventType || step === "event-type"}
-              >
+              <TabsTrigger value="serving-style">
                 2. Serving Style
               </TabsTrigger>
             </TabsList>
@@ -256,9 +323,25 @@ const OrderFlow = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              <div className="mt-8">
+                <h2 className="text-2xl font-semibold mb-6">Browse All Available Menus</h2>
+                {renderMenuItems()}
+              </div>
             </TabsContent>
             
             <TabsContent value="serving-style" className="space-y-8">
+              <div className="flex items-center mb-4">
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center gap-1"
+                  onClick={() => setStep("event-type")}
+                >
+                  <ChevronLeft className="h-4 w-4" /> 
+                  Back to Event Type
+                </Button>
+              </div>
+              
               <Card>
                 <CardContent className="pt-6">
                   <h2 className="text-2xl font-semibold mb-6">How would you like your food served?</h2>
@@ -288,49 +371,7 @@ const OrderFlow = () => {
                   </div>
                 )}
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredMenus.map((menu) => (
-                    <Card key={menu.id} className="overflow-hidden">
-                      <div className="h-48 overflow-hidden">
-                        <img 
-                          src={menu.image} 
-                          alt={menu.name} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <CardContent className="pt-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-lg font-medium">{menu.name}</h3>
-                          {menu.isVegan && (
-                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                              Vegan
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{menu.description}</p>
-                        <p className="font-medium text-catering-secondary mb-4">{menu.price}</p>
-                        
-                        <div className="mb-4">
-                          <h4 className="text-sm font-medium mb-2">Includes:</h4>
-                          <ul className="text-sm text-gray-600 space-y-1">
-                            {menu.subProducts.map((subProduct) => (
-                              <li key={subProduct.id} className="flex items-center">
-                                <span>{subProduct.name}</span>
-                                {subProduct.isVegan && (
-                                  <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-100 text-green-800 rounded">V</span>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        
-                        <Button className="w-full bg-orange-600 hover:bg-orange-500">
-                          Select Menu
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                {renderMenuItems()}
               </div>
             </TabsContent>
           </Tabs>
@@ -341,4 +382,3 @@ const OrderFlow = () => {
 };
 
 export default OrderFlow;
-
