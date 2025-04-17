@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 const Hero = () => {
@@ -17,13 +16,13 @@ const Hero = () => {
                 <span className="block text-white/80">Global Flavors for Your Workplace </span>
               </h1>
               <p className="mt-3 text-base text-white/90 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0"> Transform your workplace dining with culturally rich, sustainable catering.</p>
-              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start space-x-3">
                 <div className="rounded-md shadow">
                   <Link to="/register">
                     <Button className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-black hover:bg-gray-800 md:py-4 md:text-lg md:px-10">Register company account</Button>
                   </Link>
                 </div>
-                <div className="mt-3 sm:mt-0 sm:ml-3">
+                <div>
                   <Link to="/order">
                     <Button variant="outline" className="w-full flex items-center justify-center px-8 py-3 border border-white text-white bg-transparent hover:bg-white/10 md:py-4 md:text-lg md:px-10">
                       Order Now

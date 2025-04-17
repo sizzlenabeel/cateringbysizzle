@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Menu } from "lucide-react";
@@ -21,13 +20,10 @@ const Navbar = () => {
             <Link to="/services" className="text-gray-600 hover:text-catering-secondary px-3 py-2 font-medium">
               Services
             </Link>
-            <Link to="/menus" className="text-gray-600 hover:text-catering-secondary px-3 py-2 font-medium">
-              Menus
+            <Link to="/about" className="text-gray-600 hover:text-catering-secondary px-3 py-2 font-medium">
+              About
             </Link>
             <Link to="/about" className="text-gray-600 hover:text-catering-secondary px-3 py-2 font-medium">
-              About Us
-            </Link>
-            <Link to="/contact" className="text-gray-600 hover:text-catering-secondary px-3 py-2 font-medium">
               Contact
             </Link>
             <div className="ml-4 flex items-center">
@@ -60,13 +56,10 @@ const Navbar = () => {
             <Link to="/services" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-catering-secondary hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
               Services
             </Link>
-            <Link to="/menus" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-catering-secondary hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
-              Menus
+            <Link to="/about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-catering-secondary hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+              About
             </Link>
             <Link to="/about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-catering-secondary hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
-              About Us
-            </Link>
-            <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-catering-secondary hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
               Contact
             </Link>
             <div className="pt-4 pb-3 border-t border-gray-200">
