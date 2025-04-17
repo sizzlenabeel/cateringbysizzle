@@ -16,3 +16,42 @@ export interface MenuItemWithRelations extends MenuItem {
   serving_styles: ServingStyle[];
   sub_products: (SubProduct & { is_default: boolean })[];
 }
+
+// New types for cart and orders
+export interface CartItem {
+  id: string;
+  user_id: string;
+  menu_id: string;
+  quantity: number;
+  selected_sub_products: any;
+  total_price: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Order {
+  id: string;
+  user_id: string;
+  status: 'pending' | 'processing' | 'delivered' | 'cancelled';
+  total_amount: number;
+  discount_amount: number;
+  discount_code?: string;
+  shipping_name: string;
+  shipping_email: string;
+  shipping_phone: string;
+  shipping_address: string;
+  reference?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  menu_id: string;
+  quantity: number;
+  selected_sub_products: any;
+  total_price: number;
+  created_at: string;
+  updated_at: string;
+}

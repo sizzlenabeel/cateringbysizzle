@@ -3,6 +3,7 @@ import { Cart, CartItem, initialCart, discountCodes, currentCompany, formatPrice
 import { menuItems } from "@/data/menuData";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { CartItem as SupabaseCartItem } from "@/types/supabase";
 
 interface CartContextType {
   cart: Cart;
@@ -34,6 +35,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
+      // Using raw SQL query with type assertion for now, until types are updated
       const { data: cartItems, error } = await supabase
         .from('cart_items')
         .select('*');
@@ -45,15 +47,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       if (cartItems) {
         const loadedCart: Cart = {
-          items: cartItems.map(item => ({
+          items: cartItems.map((item: any) => ({
             menuId: item.menu_id,
             quantity: item.quantity,
             selectedSubProducts: item.selected_sub_products || [],
             totalPrice: Number(item.total_price)
           })),
-          subtotal: cartItems.reduce((sum, item) => sum + Number(item.total_price), 0),
+          subtotal: cartItems.reduce((sum: number, item: any) => sum + Number(item.total_price) * item.quantity, 0),
           discount: 0,
-          total: cartItems.reduce((sum, item) => sum + Number(item.total_price), 0)
+          total: cartItems.reduce((sum: number, item: any) => sum + Number(item.total_price) * item.quantity, 0)
         };
         setCart(loadedCart);
       }
@@ -86,6 +88,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    // Using type assertion for now
     const { error } = await supabase
       .from('cart_items')
       .insert({
@@ -94,7 +97,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         quantity: item.quantity,
         selected_sub_products: item.selectedSubProducts,
         total_price: item.totalPrice
-      });
+      } as any);
 
     if (error) {
       console.error('Error adding to cart:', error);
@@ -124,9 +127,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return removeFromCart(menuId);
     }
 
+    // Using type assertion for now
     const { error } = await supabase
       .from('cart_items')
-      .update({ quantity })
+      .update({ quantity } as any)
       .eq('menu_id', menuId)
       .eq('user_id', session.user.id);
 
@@ -145,6 +149,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
 
+    // Using type assertion for now
     const { error } = await supabase
       .from('cart_items')
       .delete()
@@ -169,6 +174,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
 
+    // Using type assertion for now
     const { error } = await supabase
       .from('cart_items')
       .delete()
