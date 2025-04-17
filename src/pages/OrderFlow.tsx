@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,41 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Clock, Calendar as CalendarIcon, MapPin, Plus, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Event type options
-const eventTypes = [
-  { id: "breakfast", label: "Breakfast", icon: "☕" },
-  { id: "lunch", label: "Lunch", icon: "🍲" },
-  { id: "dinner", label: "Dinner", icon: "🍽️" },
-  { id: "mingle", label: "Mingle", icon: "🥂" },
-  { id: "fika", label: "Fika", icon: "🧁" },
-];
-
-// Serving style options
-const servingStyles = [
-  { id: "buffet", label: "Buffet Spread" },
-  { id: "individual", label: "Individual Portions" },
-];
-
-// Sample menu data with sub-products
-const menuItems = [
-  {
-    id: "menu1",
-    name: "Continental Breakfast",
-    description: "A light breakfast spread with pastries and fruits",
-    price: "$15 per person",
-    image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?ixlib=rb-4.0.3",
-    eventType: "breakfast",
-    isVegan: false,
-    subProducts: [
-      { id: "sub1", name: "Croissants", isVegan: false },
-      { id: "sub2", name: "Fresh Fruit Platter", isVegan: true },
-      { id: "sub3", name: "Yogurt Parfait", isVegan: false },
-      { id: "sub4", name: "Coffee & Tea", isVegan: true },
-    ]
-  },
-  // ... keep existing code (rest of menu items)
-];
+import { menuItems, eventTypes, servingStyles } from "@/data/menuData";
 
 // Sample addresses data (will come from database later)
 const addressOptions = [
@@ -82,7 +50,11 @@ const OrderFlow = () => {
     let filtered = menuItems;
     
     if (eventType) {
-      filtered = filtered.filter(item => item.eventType === eventType);
+      filtered = filtered.filter(item => item.eventTypes.includes(eventType));
+    }
+    
+    if (servingStyle) {
+      filtered = filtered.filter(item => item.servingStyles.includes(servingStyle));
     }
     
     if (showVeganOnly) {
@@ -90,7 +62,7 @@ const OrderFlow = () => {
     }
     
     setFilteredMenus(filtered);
-  }, [eventType, showVeganOnly]);
+  }, [eventType, servingStyle, showVeganOnly]);
 
   // Show protected route notice (temp until auth is implemented)
   useEffect(() => {
@@ -98,7 +70,7 @@ const OrderFlow = () => {
       title: "Protected Route",
       description: "This page will require authentication once Supabase is connected.",
     });
-  }, [toast]);
+  }, []);
 
   // Handle address selection
   const handleAddressSelect = (address) => {
@@ -143,25 +115,33 @@ const OrderFlow = () => {
               )}
             </div>
             <p className="text-sm text-gray-600 mb-2">{menu.description}</p>
-            <p className="font-medium text-catering-secondary mb-4">{menu.price}</p>
+            <p className="font-medium text-catering-secondary mb-4">${menu.basePrice.toFixed(2)} per person</p>
             
             <div className="mb-4">
               <h4 className="text-sm font-medium mb-2">Includes:</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                {menu.subProducts.map((subProduct) => (
-                  <li key={subProduct.id} className="flex items-center">
-                    <span>{subProduct.name}</span>
-                    {subProduct.isVegan && (
-                      <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-100 text-green-800 rounded">V</span>
-                    )}
-                  </li>
-                ))}
+                {menu.subProducts
+                  .filter(subProduct => subProduct.isDefault)
+                  .slice(0, 3)
+                  .map((subProduct) => (
+                    <li key={subProduct.id} className="flex items-center">
+                      <span>{subProduct.name}</span>
+                      {subProduct.isVegan && (
+                        <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-100 text-green-800 rounded">V</span>
+                      )}
+                    </li>
+                  ))}
+                {menu.subProducts.filter(sp => sp.isDefault).length > 3 && (
+                  <li className="text-catering-secondary">+ more items</li>
+                )}
               </ul>
             </div>
             
-            <Button className="w-full bg-orange-600 hover:bg-orange-500">
-              Select Menu
-            </Button>
+            <Link to={`/menu/${menu.id}`}>
+              <Button className="w-full bg-orange-600 hover:bg-orange-500">
+                Customize Menu
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       ))}

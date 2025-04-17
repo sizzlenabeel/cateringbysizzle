@@ -8,8 +8,8 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   
-  // Check if we're in the order flow
-  const isOrderFlow = location.pathname === "/order";
+  // Check if we're in the order flow or menu customization
+  const isOrderFlow = location.pathname === "/order" || location.pathname.startsWith("/menu/");
   
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
