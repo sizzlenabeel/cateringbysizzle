@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Menu } from "lucide-react";
@@ -17,15 +18,6 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/services" className="text-gray-600 hover:text-catering-secondary px-3 py-2 font-medium">
-              Services
-            </Link>
-            <Link to="/about" className="text-gray-600 hover:text-catering-secondary px-3 py-2 font-medium">
-              About
-            </Link>
-            <Link to="/about" className="text-gray-600 hover:text-catering-secondary px-3 py-2 font-medium">
-              Contact
-            </Link>
             <div className="ml-4 flex items-center">
               <Link to="/login">
                 <Button variant="outline" className="mr-2">
@@ -53,15 +45,6 @@ const Navbar = () => {
       {/* Mobile menu, show/hide based on menu state */}
       {isMenuOpen && <div className="md:hidden bg-white shadow-lg rounded-b-lg">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link to="/services" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-catering-secondary hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
-              Services
-            </Link>
-            <Link to="/about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-catering-secondary hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
-              About
-            </Link>
-            <Link to="/about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-catering-secondary hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
-              Contact
-            </Link>
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="flex items-center px-5">
                 <Link to="/login" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary" onClick={() => setIsMenuOpen(false)}>
