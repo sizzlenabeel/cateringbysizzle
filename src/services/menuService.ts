@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { EventType, MenuItem, MenuItemWithRelations, ServingStyle, SubProduct } from "@/types/supabase";
 
@@ -35,7 +34,6 @@ export async function fetchMenuItems(options: {
   servingStyleId?: string;
   isVegan?: boolean;
 } = {}): Promise<MenuItemWithRelations[]> {
-  // Start with the base query
   let query = supabase.from("menu_items").select(`
     *,
     menu_item_event_types!inner (
@@ -49,14 +47,9 @@ export async function fetchMenuItems(options: {
     menu_item_sub_products (
       is_default,
       sub_products (*)
-    ),
-    menu_item_categories (
-      category_id,
-      categories (*)
     )
   `);
   
-  // Apply filters if provided
   if (options.eventTypeId) {
     query = query.filter("menu_item_event_types.event_type_id", "eq", options.eventTypeId);
   }
@@ -76,7 +69,6 @@ export async function fetchMenuItems(options: {
     return [];
   }
   
-  // Transform the data to match our expected format
   return data.map((item: any) => {
     const event_types = item.menu_item_event_types.map((et: any) => et.event_types);
     const serving_styles = item.menu_item_serving_styles.map((ss: any) => ss.serving_styles);
@@ -84,22 +76,18 @@ export async function fetchMenuItems(options: {
       ...sp.sub_products,
       is_default: sp.is_default
     }));
-    const categories = item.menu_item_categories.map((cat: any) => cat.categories);
     
-    // Remove the nested data and add the flattened arrays
-    const { menu_item_event_types, menu_item_serving_styles, menu_item_sub_products, menu_item_categories, ...menuItem } = item;
+    const { menu_item_event_types, menu_item_serving_styles, menu_item_sub_products, ...menuItem } = item;
     
     return {
       ...menuItem,
       event_types,
       serving_styles,
-      sub_products,
-      categories
+      sub_products
     };
   });
 }
 
-// Helper function to get minimum quantity for a menu item
 export async function getMinimumQuantity(menuId: string): Promise<number> {
   const { data, error } = await supabase
     .from("menu_items")

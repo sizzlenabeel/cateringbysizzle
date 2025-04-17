@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -41,10 +40,6 @@ const MenuCustomization = () => {
           menu_item_sub_products (
             is_default,
             sub_products (*)
-          ),
-          menu_item_categories (
-            category_id,
-            categories (*)
           )
         `)
         .eq("id", id)
@@ -59,17 +54,15 @@ const MenuCustomization = () => {
         ...sp.sub_products,
         is_default: sp.is_default
       }));
-      const categories = data.menu_item_categories.map((cat: any) => cat.categories);
       
       // Remove the nested data and add the flattened arrays
-      const { menu_item_event_types, menu_item_serving_styles, menu_item_sub_products, menu_item_categories, ...menuItemData } = data;
+      const { menu_item_event_types, menu_item_serving_styles, menu_item_sub_products, ...menuItemData } = data;
       
       return {
         ...menuItemData,
         event_types,
         serving_styles,
-        sub_products,
-        categories
+        sub_products
       };
     },
     enabled: !!id

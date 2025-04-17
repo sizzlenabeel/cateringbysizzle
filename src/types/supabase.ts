@@ -9,12 +9,10 @@ export type SubProduct = Database["public"]["Tables"]["sub_products"]["Row"];
 export type MenuItemSubProduct = Database["public"]["Tables"]["menu_item_sub_products"]["Row"];
 export type MenuItemEventType = Database["public"]["Tables"]["menu_item_event_types"]["Row"];
 export type MenuItemServingStyle = Database["public"]["Tables"]["menu_item_serving_styles"]["Row"];
-export type Category = Database["public"]["Tables"]["categories"]["Row"];
 
 // Extended types with relationships resolved
 export interface MenuItemWithRelations extends MenuItem {
   event_types: EventType[];
   serving_styles: ServingStyle[];
   sub_products: (SubProduct & { is_default: boolean })[];
-  categories: Category[];
 }
