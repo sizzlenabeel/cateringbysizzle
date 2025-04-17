@@ -1,28 +1,36 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Check, Plus, Minus } from "lucide-react";
 import { menuItems, MenuItem, SubProduct, eventTypes } from "@/data/menuData";
+import { useCart } from "@/contexts/CartContext";
+import { getMinimumQuantity } from "@/data/cartData";
 
 const MenuCustomization = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { addToCart, formatPrice } = useCart();
   
   const menuItem = menuItems.find(item => item.id === id);
+  const minimumQuantity = id ? getMinimumQuantity(id) : 5;
 
   const [customizedMenu, setCustomizedMenu] = useState<{
     menu: MenuItem | null,
     selectedSubProducts: string[],
     totalPrice: number,
+    quantity: number
   }>({
     menu: null,
     selectedSubProducts: [],
     totalPrice: 0,
+    quantity: minimumQuantity
   });
 
   useEffect(() => {
@@ -35,9 +43,10 @@ const MenuCustomization = () => {
         menu: menuItem,
         selectedSubProducts: defaultSelectedSubProducts,
         totalPrice: calculateTotalPrice(menuItem, defaultSelectedSubProducts),
+        quantity: minimumQuantity
       });
     }
-  }, [menuItem]);
+  }, [menuItem, minimumQuantity]);
 
   const calculateTotalPrice = (menu: MenuItem, selectedIds: string[]): number => {
     const basePrice = menu.basePrice;
@@ -82,12 +91,32 @@ const MenuCustomization = () => {
     });
   };
 
+  const updateQuantity = (newQuantity: number) => {
+    if (newQuantity >= minimumQuantity) {
+      setCustomizedMenu({
+        ...customizedMenu,
+        quantity: newQuantity
+      });
+    } else {
+      toast({
+        title: "Minimum quantity required",
+        description: `This menu requires a minimum of ${minimumQuantity} orders`,
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleAddToCart = () => {
-    toast({
-      title: "Menu added to order",
-      description: "Your customized menu has been added to your order.",
+    if (!customizedMenu.menu) return;
+    
+    addToCart({
+      menuId: customizedMenu.menu.id,
+      quantity: customizedMenu.quantity,
+      selectedSubProducts: customizedMenu.selectedSubProducts,
+      totalPrice: customizedMenu.totalPrice
     });
-    navigate("/order");
+    
+    navigate("/cart");
   };
 
   if (!customizedMenu.menu) {
@@ -141,21 +170,62 @@ const MenuCustomization = () => {
                     </span>
                   )}
                 </div>
+
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="quantity" className="font-medium">Quantity:</label>
+                    <div className="flex items-center">
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => updateQuantity(customizedMenu.quantity - 1)}
+                        disabled={customizedMenu.quantity <= minimumQuantity}
+                        className="h-8 w-8"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        id="quantity"
+                        type="number"
+                        min={minimumQuantity}
+                        value={customizedMenu.quantity}
+                        onChange={(e) => updateQuantity(parseInt(e.target.value))}
+                        className="w-16 mx-2 text-center h-8"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => updateQuantity(customizedMenu.quantity + 1)}
+                        className="h-8 w-8"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Minimum quantity: {minimumQuantity}
+                  </p>
+                </div>
               </div>
               
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-baseline justify-between mb-2">
-                  <span className="text-lg font-medium">Total Price:</span>
+                  <span className="text-lg font-medium">Price per person:</span>
                   <span className="text-2xl font-bold text-purple-700">
-                    ${customizedMenu.totalPrice.toFixed(2)}
-                    <span className="text-sm text-gray-500 ml-1">per person</span>
+                    {formatPrice(customizedMenu.totalPrice)}
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between mb-4">
+                  <span className="text-lg font-medium">Total price:</span>
+                  <span className="text-2xl font-bold text-purple-700">
+                    {formatPrice(customizedMenu.totalPrice * customizedMenu.quantity)}
                   </span>
                 </div>
                 <Button 
                   className="w-full mt-2 bg-orange-600 hover:bg-orange-500"
                   onClick={handleAddToCart}
                 >
-                  Add to Order
+                  Add to Cart
                 </Button>
               </div>
             </div>
@@ -180,6 +250,7 @@ const MenuCustomization = () => {
                           subProduct={subProduct}
                           isSelected={customizedMenu.selectedSubProducts.includes(subProduct.id)}
                           onToggle={toggleSubProduct}
+                          formatPrice={formatPrice}
                         />
                       ))}
                   </div>
@@ -196,6 +267,7 @@ const MenuCustomization = () => {
                           subProduct={subProduct}
                           isSelected={customizedMenu.selectedSubProducts.includes(subProduct.id)}
                           onToggle={toggleSubProduct}
+                          formatPrice={formatPrice}
                         />
                       ))}
                   </div>
@@ -213,9 +285,10 @@ type SubProductItemProps = {
   subProduct: SubProduct;
   isSelected: boolean;
   onToggle: (id: string) => void;
+  formatPrice: (price: number) => string;
 };
 
-const SubProductItem = ({ subProduct, isSelected, onToggle }: SubProductItemProps) => {
+const SubProductItem = ({ subProduct, isSelected, onToggle, formatPrice }: SubProductItemProps) => {
   return (
     <div className={`
       flex items-center justify-between p-3 rounded-lg border 
@@ -246,7 +319,7 @@ const SubProductItem = ({ subProduct, isSelected, onToggle }: SubProductItemProp
         </div>
       </div>
       <div className="flex items-center">
-        <span className="font-medium text-purple-700">${subProduct.price.toFixed(2)}</span>
+        <span className="font-medium text-purple-700">{formatPrice(subProduct.price)}</span>
         {isSelected ? (
           <button 
             onClick={() => onToggle(subProduct.id)}
