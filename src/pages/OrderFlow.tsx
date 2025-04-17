@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useMenuData } from "@/hooks/useMenuData";
 import { EventType, MenuItemWithRelations, ServingStyle } from "@/types/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { seedSampleMenuItems } from "@/services/adminService";
 
 // Sample addresses data (will come from database later)
 const addressOptions = [
@@ -34,6 +35,7 @@ const OrderFlow = () => {
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(addressOptions[0]);
   const [newAddress, setNewAddress] = useState("");
+  const [isSeeding, setIsSeeding] = useState(false);
   
   const {
     eventTypes,
@@ -43,7 +45,8 @@ const OrderFlow = () => {
     setEventType,
     setServingStyle,
     setVeganOnly,
-    isLoading
+    isLoading,
+    refetchMenuItems
   } = useMenuData();
 
   // Handle address selection
@@ -68,6 +71,38 @@ const OrderFlow = () => {
     }
   };
 
+  // Handle seeding sample data
+  const handleSeedSampleData = async () => {
+    setIsSeeding(true);
+    try {
+      const success = await seedSampleMenuItems();
+      if (success) {
+        toast({
+          title: "Sample menus added",
+          description: "Sample menu items have been added to the database",
+          variant: "success"
+        });
+        // Refresh menu items
+        await refetchMenuItems();
+      } else {
+        toast({
+          title: "Error adding sample menus",
+          description: "An error occurred while adding sample menu items",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error seeding sample data:", error);
+      toast({
+        title: "Error adding sample menus",
+        description: "An error occurred while adding sample menu items",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   const renderMenuItems = () => {
     if (isLoading) {
       return (
@@ -81,9 +116,23 @@ const OrderFlow = () => {
     if (menuItems.length === 0) {
       return (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">
-            No menus match your current selection. Please try different options.
+          <p className="text-gray-500 text-lg mb-6">
+            No menus match your current selection. Please try different options or add sample menu items.
           </p>
+          <Button 
+            onClick={handleSeedSampleData} 
+            className="bg-catering-secondary"
+            disabled={isSeeding}
+          >
+            {isSeeding ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Adding Sample Menus...
+              </>
+            ) : (
+              <>Add Sample Menu Items</>
+            )}
+          </Button>
         </div>
       );
     }

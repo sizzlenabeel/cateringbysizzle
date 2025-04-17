@@ -1,46 +1,33 @@
 
-import { getMinimumQuantity } from "@/services/menuService";
-
-export interface CartItem {
+// Types
+export type CartItem = {
   menuId: string;
   quantity: number;
   selectedSubProducts: string[];
   totalPrice: number;
-}
+};
 
-export interface Cart {
+export type Cart = {
   items: CartItem[];
   subtotal: number;
   discount: number;
   total: number;
   discountCode?: string;
-}
+};
 
-export interface DiscountCode {
-  id: string;
+export type DiscountCode = {
   code: string;
   percentage: number;
   validUntil: Date;
-  isActive: boolean;
-}
+};
 
-export interface Company {
+export type Company = {
   id: string;
   name: string;
   discountPercentage: number;
-}
-
-// Currency formatter for Swedish Krona
-export const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('sv-SE', {
-    style: 'currency',
-    currency: 'SEK',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(price);
 };
 
-// Initialize empty cart
+// Initial state
 export const initialCart: Cart = {
   items: [],
   subtotal: 0,
@@ -48,30 +35,33 @@ export const initialCart: Cart = {
   total: 0
 };
 
-// Export the functions and data that are referenced in CartContext and Cart components
+// Sample discount codes
 export const discountCodes: DiscountCode[] = [
   {
-    id: "1",
     code: "WELCOME10",
     percentage: 10,
-    validUntil: new Date(2025, 11, 31),
-    isActive: true
+    validUntil: new Date(2025, 11, 31) // Valid until December 31, 2025
   },
   {
-    id: "2",
     code: "SUMMER20",
     percentage: 20,
-    validUntil: new Date(2025, 8, 30),
-    isActive: true
+    validUntil: new Date(2025, 8, 30) // Valid until September 30, 2025
   }
 ];
 
-// Sample company for demonstration purposes
-export const currentCompany: Company | null = {
-  id: "1",
-  name: "Acme Corp",
-  discountPercentage: 15
+// Sample company data
+export const currentCompany: Company = {
+  id: "company-1",
+  name: "Acme Inc",
+  discountPercentage: 5
 };
 
-// Re-export getMinimumQuantity from menuService
-export { getMinimumQuantity };
+// Helper function to format price
+export const formatPrice = (price: number): string => {
+  return `$${price.toFixed(2)}`;
+};
+
+// Helper function to get minimum quantity (for backward compatibility)
+export const getMinimumQuantity = (menuId: string): number => {
+  return 5; // Default minimum quantity
+};
