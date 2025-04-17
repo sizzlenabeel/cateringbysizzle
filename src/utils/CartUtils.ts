@@ -1,4 +1,3 @@
-
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem } from "@/contexts/CartContext";
@@ -134,9 +133,7 @@ export const loadCartItems = async (): Promise<CartItem[]> => {
       id: item.id,
       menuId: item.menu_id,
       quantity: item.quantity,
-      selectedSubProducts: Array.isArray(item.selected_sub_products) 
-        ? item.selected_sub_products 
-        : [],
+      selectedSubProducts: item.selected_sub_products.map((sp: any) => String(sp)),
       totalPrice: Number(item.total_price)
     }));
   } catch (error) {
