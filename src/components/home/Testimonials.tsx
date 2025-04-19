@@ -1,17 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 const testimonials = [{
-  content: "Boardroom Bites has been our go-to catering service for the past year. Their attention to detail, quality of food, and professional service make them stand out. Our clients are always impressed.",
+  content: "Sizzle has been our go-to catering service for the past year. Their attention to detail, quality of food, and professional service make them stand out. Our clients are always impressed.",
   author: "Sarah Johnson",
   position: "Office Manager, TechCorp Inc."
 }, {
-  content: "We've used Boardroom Bites for everything from small team meetings to major client presentations. The online ordering system makes it incredibly easy to manage our corporate account.",
+  content: "We've used Sizzle for everything from small team meetings to major client presentations. The online ordering system makes it incredibly easy to manage our corporate account.",
   author: "Michael Chen",
   position: "Executive Assistant, Global Finance Group"
 }, {
-  content: "The customization options offered by Boardroom Bites have been perfect for our diverse team's dietary needs. Their invoice system makes expense tracking straightforward for our accounting department.",
+  content: "The customization options offered by Sizzle have been perfect for our diverse team's dietary needs. Their invoice system makes expense tracking straightforward for our accounting department.",
   author: "Priya Patel",
   position: "HR Director, Innovative Solutions"
 }];
+
 const Testimonials = () => {
   return <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
