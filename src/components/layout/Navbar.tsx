@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, User, LogOut, ShoppingCart } from "lucide-react";
@@ -22,10 +21,8 @@ const Navbar = () => {
   const { cartItems } = useCart();
   const { user, signOut } = useAuth();
   
-  // A user is logged in if they have a user object
   const isLoggedIn = !!user;
   
-  // Calculate total items in cart
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleLogout = async () => {
@@ -46,7 +43,6 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {isLoggedIn ? (
               <>
@@ -64,17 +60,17 @@ const Navbar = () => {
                       <NavigationMenuContent>
                         <ul className="grid w-[200px] gap-3 p-4">
                           <li>
-                            <Link to="/profile" className="block p-2 hover:bg-gray-100 rounded-md">
+                            <Link to="/profile" className="block p-2 hover:bg-orange-50 rounded-md">
                               Profile Settings
                             </Link>
                           </li>
                           <li>
-                            <Link to="/order-history" className="block p-2 hover:bg-gray-100 rounded-md">
+                            <Link to="/order-history" className="block p-2 hover:bg-orange-50 rounded-md">
                               Order History
                             </Link>
                           </li>
                           <li>
-                            <Link to="/company-settings" className="block p-2 hover:bg-gray-100 rounded-md">
+                            <Link to="/company-settings" className="block p-2 hover:bg-orange-50 rounded-md">
                               Company Settings
                             </Link>
                           </li>
@@ -84,7 +80,7 @@ const Navbar = () => {
                     <NavigationMenuItem>
                       <Link to="/contact">
                         <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                          Contact
+                          About & Contact
                         </NavigationMenuLink>
                       </Link>
                     </NavigationMenuItem>
@@ -124,16 +120,9 @@ const Navbar = () => {
                 <NavigationMenu>
                   <NavigationMenuList>
                     <NavigationMenuItem>
-                      <Link to="/about">
-                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                          About Us
-                        </NavigationMenuLink>
-                      </Link>
-                    </NavigationMenuItem>
-                    <NavigationMenuItem>
                       <Link to="/contact">
                         <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                          Contact
+                          About & Contact
                         </NavigationMenuLink>
                       </Link>
                     </NavigationMenuItem>
@@ -156,7 +145,6 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             {isLoggedIn && (
               <Link to="/cart" className="mr-4 relative">
@@ -176,27 +164,26 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu, show/hide based on menu state */}
       {isMenuOpen && (
         <div className="md:hidden bg-white shadow-lg rounded-b-lg">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {isLoggedIn && (
               <>
-                <Link to="/order" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                <Link to="/order" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
                   Order Menu
                 </Link>
-                <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
                   Profile Settings
                 </Link>
-                <Link to="/order-history" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
+                <Link to="/order-history" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
                   Order History
                 </Link>
-                <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
-                  Contact
+                <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
+                  About & Contact
                 </Link>
                 <div className="border-t border-gray-200 mt-4 pt-4">
                   <button 
-                    className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-gray-700 hover:bg-gray-50"
+                    className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-gray-700 hover:bg-orange-50"
                     onClick={handleLogout}
                   >
                     Log out
@@ -206,20 +193,17 @@ const Navbar = () => {
             )}
             {!isLoggedIn && (
               <>
-                <Link to="/about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
-                  About Us
-                </Link>
-                <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50" onClick={() => setIsMenuOpen(false)}>
-                  Contact
+                <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
+                  About & Contact
                 </Link>
                 <div className="pt-4 pb-3 border-t border-gray-200">
                   <div className="flex items-center px-5">
-                    <Link to="/login" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-catering-secondary border border-catering-secondary" onClick={() => setIsMenuOpen(false)}>
+                    <Link to="/login" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-orange-600 border border-orange-600" onClick={() => setIsMenuOpen(false)}>
                       Log in
                     </Link>
                   </div>
                   <div className="mt-3 px-5">
-                    <Link to="/register" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-white bg-catering-secondary" onClick={() => setIsMenuOpen(false)}>
+                    <Link to="/register" className="block w-full px-3 py-2 rounded-md text-center text-base font-medium text-white bg-orange-600" onClick={() => setIsMenuOpen(false)}>
                       Register
                     </Link>
                   </div>

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,7 +9,6 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Contact from "./pages/Contact";
-import About from "./pages/About";
 import OrderFlow from "./pages/OrderFlow";
 import MenuCustomization from "./pages/MenuCustomization";
 import Cart from "./pages/Cart";
@@ -33,7 +33,6 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/about" element={<About />} />
               <Route path="/order" element={<OrderFlow />} />
               <Route path="/menu/:id" element={<MenuCustomization />} />
               <Route path="/cart" element={<Cart />} />
