@@ -12,16 +12,17 @@ import { CartSummary } from "@/components/cart/CartSummary";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { cartItems, isLoading, updateQuantity, removeItem, subtotal, formatPrice } = useCart();
 
   useEffect(() => {
-    if (!user) {
+    if (!authLoading && !user) {
+      console.log("User not logged in, redirecting to login");
       navigate("/login");
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <Layout>
         <div className="container mx-auto py-12 px-4">
@@ -42,6 +43,8 @@ const Cart = () => {
       </Layout>
     );
   }
+
+  console.log("Cart Items on render:", cartItems);
 
   return (
     <Layout>

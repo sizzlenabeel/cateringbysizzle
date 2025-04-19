@@ -1,3 +1,4 @@
+
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem } from "@/contexts/CartContext";
@@ -121,6 +122,19 @@ export const loadCartItems = async (): Promise<CartItem[]> => {
   console.log('Current User ID:', session.user.id);
 
   try {
+    // First check if RLS is allowing access by checking for cart items count
+    const { count, error: countError } = await supabase
+      .from('cart_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', session.user.id);
+    
+    if (countError) {
+      console.error('Error checking cart items count:', countError);
+      throw countError;
+    }
+    
+    console.log(`Found ${count} cart items for user`);
+
     const { data, error } = await supabase
       .from('cart_items')
       .select(`
@@ -141,6 +155,7 @@ export const loadCartItems = async (): Promise<CartItem[]> => {
 
     if (!data || data.length === 0) {
       console.log('No cart items found for user');
+      return [];
     }
 
     return data.map(item => {
@@ -151,10 +166,13 @@ export const loadCartItems = async (): Promise<CartItem[]> => {
           try {
             selectedSubProducts = JSON.parse(item.selected_sub_products);
           } catch (e) {
-            console.error('Error parsing selected_sub_products', e);
+            console.error('Error parsing selected_sub_products string:', e);
+            console.log('Raw selected_sub_products value:', item.selected_sub_products);
           }
         } else if (Array.isArray(item.selected_sub_products)) {
           selectedSubProducts = item.selected_sub_products.map(sp => String(sp));
+        } else {
+          console.log('Unexpected selected_sub_products format:', typeof item.selected_sub_products, item.selected_sub_products);
         }
       }
 

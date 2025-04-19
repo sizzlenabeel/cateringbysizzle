@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart, loadCartItems, removeFromCart, updateCartItemQuantity } from "@/utils/CartUtils";
@@ -38,10 +38,20 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Force refetch when user changes
+  useEffect(() => {
+    if (user) {
+      console.log("User logged in, invalidating cart query");
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    }
+  }, [user, queryClient]);
+
   const { data: cartItems = [], isLoading } = useQuery({
     queryKey: ['cart'],
     queryFn: loadCartItems,
     enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2
   });
 
   const addItemMutation = useMutation({
