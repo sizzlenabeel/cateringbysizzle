@@ -1,4 +1,3 @@
-
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem } from "@/contexts/CartContext";
@@ -114,7 +113,12 @@ export const updateCartItemQuantity = async (itemId: string, quantity: number): 
  */
 export const loadCartItems = async (): Promise<CartItem[]> => {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) return [];
+  if (!session?.user) {
+    console.log('No active session: Cannot load cart items');
+    return [];
+  }
+
+  console.log('Current User ID:', session.user.id);
 
   try {
     const { data, error } = await supabase
@@ -128,22 +132,28 @@ export const loadCartItems = async (): Promise<CartItem[]> => {
       `)
       .eq('user_id', session.user.id);
 
-    if (error) throw error;
+    console.log('Cart Items Query Result:', { data, error });
+
+    if (error) {
+      console.error('Detailed Cart Load Error:', error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      console.log('No cart items found for user');
+    }
 
     return data.map(item => {
-      // Handle the selected_sub_products field which might be a JSON string or an array
       let selectedSubProducts: string[] = [];
       
       if (item.selected_sub_products) {
         if (typeof item.selected_sub_products === 'string') {
-          // If it's a string, parse it
           try {
             selectedSubProducts = JSON.parse(item.selected_sub_products);
           } catch (e) {
             console.error('Error parsing selected_sub_products', e);
           }
         } else if (Array.isArray(item.selected_sub_products)) {
-          // If it's already an array, map each item to string
           selectedSubProducts = item.selected_sub_products.map(sp => String(sp));
         }
       }
@@ -157,7 +167,7 @@ export const loadCartItems = async (): Promise<CartItem[]> => {
       };
     });
   } catch (error) {
-    console.error('Error loading cart:', error);
+    console.error('Comprehensive Cart Load Error:', error);
     toast({
       title: "Error",
       description: "Failed to load cart items",
