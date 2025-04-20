@@ -1,7 +1,9 @@
 
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubProduct } from "@/types/supabase";
 import { SubProductItem } from "./SubProductItem";
+import { CategoryFilter } from "./CategoryFilter";
 
 type SubProductListProps = {
   subProducts: (SubProduct & { is_default: boolean })[];
@@ -16,8 +18,27 @@ export const SubProductList = ({
   onToggleSubProduct,
   formatPrice
 }: SubProductListProps) => {
-  const defaultProducts = subProducts.filter(sp => sp.is_default);
-  const optionalProducts = subProducts.filter(sp => !sp.is_default);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Get unique categories from subProducts
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set<string>();
+    subProducts.forEach(sp => {
+      if (sp.category) {
+        uniqueCategories.add(sp.category);
+      }
+    });
+    return Array.from(uniqueCategories).sort();
+  }, [subProducts]);
+
+  // Filter products by category
+  const filteredProducts = useMemo(() => {
+    if (!selectedCategory) return subProducts;
+    return subProducts.filter(sp => sp.category === selectedCategory);
+  }, [subProducts, selectedCategory]);
+
+  const defaultProducts = filteredProducts.filter(sp => sp.is_default);
+  const optionalProducts = filteredProducts.filter(sp => !sp.is_default);
 
   return (
     <Card>
@@ -26,6 +47,14 @@ export const SubProductList = ({
         <p className="text-gray-600 mb-6">
           Select or deselect items to customize your menu. The price will update automatically.
         </p>
+        
+        {categories.length > 0 && (
+          <CategoryFilter
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
+        )}
         
         <div className="space-y-6">
           <div>
