@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
 import { Mail, Phone, MapPin, Clock, CheckCircle } from "lucide-react";
-
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -20,7 +19,6 @@ const Contact = () => {
   const {
     toast
   } = useToast();
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const {
       name,
@@ -31,18 +29,15 @@ const Contact = () => {
       [name]: value
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
         title: "Message Sent",
         description: "We'll get back to you as soon as possible."
       });
-
       setFormData({
         name: "",
         email: "",
@@ -61,28 +56,20 @@ const Contact = () => {
       setIsLoading(false);
     }
   };
-
-  const values = [
-    {
-      title: "Quality",
-      description: "We use only the freshest ingredients and maintain the highest standards of food preparation and presentation."
-    },
-    {
-      title: "Reliability",
-      description: "We understand timing is critical for business events. Our delivery is always on time and as promised."
-    },
-    {
-      title: "Diversity",
-      description: "We celebrate diverse culinary traditions and empower chefs from immigrant backgrounds to share their unique food heritage."
-    },
-    {
-      title: "Social Impact",
-      description: "We create opportunities for immigrant chefs, particularly women of color, to showcase their talents and build sustainable careers."
-    }
-  ];
-
-  return (
-    <Layout>
+  const values = [{
+    title: "Quality",
+    description: "We use only the freshest ingredients and maintain the highest standards of food preparation and presentation."
+  }, {
+    title: "Reliability",
+    description: "We understand timing is critical for business events. Our delivery is always on time and as promised."
+  }, {
+    title: "Diversity",
+    description: "We celebrate diverse culinary traditions and empower chefs from immigrant backgrounds to share their unique food heritage."
+  }, {
+    title: "Social Impact",
+    description: "We create opportunities for immigrant chefs, particularly women of color, to showcase their talents and build sustainable careers."
+  }];
+  return <Layout>
       <div className="bg-gray-50 py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -166,7 +153,7 @@ const Contact = () => {
                       <Label htmlFor="message">Message</Label>
                       <Textarea id="message" name="message" rows={5} value={formData.message} onChange={handleChange} required />
                     </div>
-                    <Button type="submit" className="w-full bg-catering-secondary hover:bg-purple-700" disabled={isLoading}>
+                    <Button type="submit" disabled={isLoading} className="w-full bg-orange-600 hover:bg-orange-500">
                       {isLoading ? "Sending..." : "Send Message"}
                     </Button>
                   </form>
@@ -200,15 +187,13 @@ const Contact = () => {
             <div className="mb-20 max-w-6xl mx-auto px-4">
               <h2 className="text-2xl font-bold mb-6 text-center text-orange-600">Our Values</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {values.map((value, index) => (
-                  <div key={index} className="bg-white p-6 rounded-lg shadow-sm">
+                {values.map((value, index) => <div key={index} className="bg-white p-6 rounded-lg shadow-sm">
                     <h3 className="flex items-center text-lg font-medium mb-3 text-orange-600">
                       <CheckCircle className="h-5 w-5 mr-2" />
                       {value.title}
                     </h3>
                     <p className="text-gray-600">{value.description}</p>
-                  </div>
-                ))}
+                  </div>)}
               </div>
             </div>
 
@@ -255,8 +240,6 @@ const Contact = () => {
           </div>
         </div>
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Contact;
