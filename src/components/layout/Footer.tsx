@@ -71,10 +71,11 @@ const Footer = () => {
         
         <div className="border-t border-gray-800 mt-12 pt-8 bg-slate-50">
           <p className="text-center text-gray-400 text-sm">
-            &copy; {new Date().getFullYear()} bysizzle (Kollectiv Kitchens AB). All rights reserved.
+            &copy; {new Date().getFullYear()} bysizzle (Tavernan by Sizzle AB). All rights reserved.
           </p>
         </div>
       </div>
     </footer>;
 };
 export default Footer;
+
