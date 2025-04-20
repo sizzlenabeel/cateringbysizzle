@@ -15,8 +15,8 @@ const CompanySettings = () => {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    companyName: "",
-    address: "",
+    companyName: "bysizzle",
+    address: "Kungssätravägen 15, 12737 Stockholm",
     discountPercentage: "",
   });
 
@@ -103,7 +103,7 @@ const CompanySettings = () => {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-2xl font-bold flex items-center gap-2">
               <Building className="h-6 w-6" />
-              Company Settings
+              bysizzle Settings
             </CardTitle>
             <Button
               variant="outline"

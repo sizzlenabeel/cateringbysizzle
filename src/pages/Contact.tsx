@@ -106,14 +106,14 @@ const Contact = () => {
                     <MapPin className="h-5 w-5 text-catering-secondary mr-3 mt-1" />
                     <div>
                       <h3 className="font-medium">Address</h3>
-                      <p className="text-gray-600">123 Business Park, Suite 100<br />Corporate City, BZ 12345</p>
+                      <p className="text-gray-600">Kungssätravägen 15<br />12737 Stockholm, Sweden</p>
                     </div>
                   </div>
                   <div className="flex items-start">
                     <Phone className="h-5 w-5 text-catering-secondary mr-3 mt-1" />
                     <div>
                       <h3 className="font-medium">Phone</h3>
-                      <p className="text-gray-600">+46 707-202-201</p>
+                      <p className="text-gray-600">+46 707 202 201</p>
                     </div>
                   </div>
                   <div className="flex items-start">
