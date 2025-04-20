@@ -8,10 +8,10 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, userData: any) => Promise<{ error: any | null }>;
+  signUp: (email: string, password: string, userData: any) => Promise<{ error: any | null; userId?: string }>;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
-  createCompany: (companyData: any) => Promise<{ data: any | null; error: any | null }>;
+  createCompany: (companyData: any, userId?: string) => Promise<{ data: any | null; error: any | null }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -69,7 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "Please check your email to confirm your account.",
       });
       
-      return { error: null };
+      // Return the user ID so we can use it for company creation
+      return { error: null, userId: data.user?.id };
     } catch (error: any) {
       toast({
         title: "Unexpected error",
@@ -80,12 +81,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const createCompany = async (companyData: any) => {
+  const createCompany = async (companyData: any, userId?: string) => {
     try {
-      if (!user) {
+      // Use either the provided userId or the current logged-in user's ID
+      const targetUserId = userId || user?.id;
+      
+      if (!targetUserId) {
         return { 
           data: null, 
-          error: new Error("User must be logged in to create a company") 
+          error: new Error("User ID is required to create a company") 
         };
       }
 
@@ -111,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           company_id: data.id,
           is_company_admin: true
         })
-        .eq('id', user.id);
+        .eq('id', targetUserId);
 
       if (profileError) {
         return { data: null, error: profileError };

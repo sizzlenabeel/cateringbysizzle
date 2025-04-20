@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -63,7 +62,7 @@ const Register = () => {
       const lastName = nameParts.slice(1).join(' ') || "";
 
       // Register user
-      const { error: signUpError } = await signUp(
+      const { error: signUpError, userId } = await signUp(
         values.email,
         values.password,
         {
@@ -78,11 +77,21 @@ const Register = () => {
         return;
       }
 
-      // Create company (will only work if email verification is disabled)
+      if (!userId) {
+        toast({
+          title: "Error creating company",
+          description: "Could not get user ID after registration",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Create company with the user ID from registration
       const { error: companyError } = await createCompany({
         companyName: values.companyName,
         companyAddress: values.companyAddress,
-      });
+      }, userId);
 
       if (companyError) {
         toast({
@@ -96,11 +105,12 @@ const Register = () => {
 
       toast({
         title: "Registration successful",
-        description: "Your account has been created and you are now logged in.",
+        description: "Your account and company have been created. Please check your email for verification.",
       });
       
-      // Navigate to order page after successful registration
-      navigate("/order");
+      // Navigate to login page after successful registration
+      // Since the user still needs to verify their email before accessing protected routes
+      navigate("/login");
     } catch (error: any) {
       console.error("Registration error:", error);
       toast({
