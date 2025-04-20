@@ -17,6 +17,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Profile from "./pages/Profile";
 import OrderHistory from "./pages/OrderHistory";
 import CompanySettings from "./pages/CompanySettings";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/order-history" element={<OrderHistory />} />
               <Route path="/company-settings" element={<CompanySettings />} />
+              <Route path="/admin" element={<Admin />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
