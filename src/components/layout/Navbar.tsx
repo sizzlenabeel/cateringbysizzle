@@ -51,7 +51,7 @@ const Navbar = () => {
                     <NavigationMenuItem>
                       <Link to="/order">
                         <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                          Order Menu
+                          Order
                         </NavigationMenuLink>
                       </Link>
                     </NavigationMenuItem>
@@ -59,11 +59,6 @@ const Navbar = () => {
                       <NavigationMenuTrigger>My Account</NavigationMenuTrigger>
                       <NavigationMenuContent>
                         <ul className="grid w-[200px] gap-3 p-4">
-                          <li>
-                            <Link to="/profile" className="block p-2 hover:bg-orange-50 rounded-md">
-                              Profile Settings
-                            </Link>
-                          </li>
                           <li>
                             <Link to="/order-history" className="block p-2 hover:bg-orange-50 rounded-md">
                               Order History
@@ -97,12 +92,6 @@ const Navbar = () => {
                           {cartItemCount}
                         </span>
                       )}
-                    </Button>
-                  </Link>
-                  <Link to="/profile">
-                    <Button variant="ghost" className="flex items-center gap-2 mr-2">
-                      <User className="h-4 w-4" />
-                      Profile
                     </Button>
                   </Link>
                   <Button 
@@ -170,10 +159,7 @@ const Navbar = () => {
             {isLoggedIn && (
               <>
                 <Link to="/order" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
-                  Order Menu
-                </Link>
-                <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
-                  Profile Settings
+                  Order
                 </Link>
                 <Link to="/order-history" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
                   Order History
