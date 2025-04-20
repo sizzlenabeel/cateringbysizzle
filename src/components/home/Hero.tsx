@@ -34,66 +34,87 @@ const Hero = () => {
   }, []);
 
   return (
-    <div className="relative bg-[#F97316] overflow-hidden">
-      <div className="max-w-7xl mx-auto">
-        <div className="relative z-10 pb-4 bg-[#F97316] sm:pb-8 md:pb-12 lg:max-w-2xl lg:w-full lg:pr-8">
-          <div className="flex flex-col justify-center min-h-[40vh] sm:min-h-[45vh] gap-6 px-4 sm:px-6 lg:px-8">
-            <div 
-              className={`flex flex-col items-center lg:items-start gap-4 transition-all duration-1000 transform ${
-                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-              }`}
-            >
-              <h1 className="text-3xl tracking-tight font-extrabold text-white sm:text-4xl md:text-5xl animate-fade-in">
-                <span className="block">Global Flavors for</span>
-                <span className="block text-black">Your Workplace</span>
+    <div className="relative min-h-[85vh] bg-gradient-to-br from-orange-50 to-orange-100 overflow-hidden">
+      <div className="absolute inset-0 bg-[url('/lovable-uploads/a1f306bf-ef08-4ea4-aa2d-9073abc9f6e4.png')] bg-cover bg-center opacity-5" />
+      
+      <div className="container mx-auto px-4 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-8 items-center min-h-[85vh]">
+          {/* Content Section */}
+          <div className={`space-y-8 text-center lg:text-left py-12 transition-all duration-1000 ${
+            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+          }`}>
+            <div className="space-y-4">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
+                <span className="block bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
+                  Elevate Your
+                </span>
+                <span className="block text-gray-900">
+                  Corporate Dining
+                </span>
               </h1>
-              <p className="text-base text-white/90 sm:text-lg sm:max-w-xl animate-fade-in delay-200">
-                Transform your workplace dining with culturally rich, sustainable catering.
+              <p className="text-lg sm:text-xl text-gray-600 max-w-xl mx-auto lg:mx-0">
+                Transform your workplace dining experience with our culturally rich, sustainable catering solutions.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto animate-fade-in delay-300">
-                <Link to="/register" className="w-full sm:w-auto">
-                  <Button className="w-full group bg-black hover:bg-gray-800 text-white">
-                    Register company account
-                    <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </Link>
-                <Link to="/order" className="w-full sm:w-auto">
-                  <Button variant="outline" className="w-full border-white text-white bg-transparent hover:bg-white/10">
-                    Order Now
-                  </Button>
-                </Link>
-              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link to="/register">
+                <Button 
+                  size="lg"
+                  className="w-full sm:w-auto bg-orange-600 hover:bg-orange-500 group shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Get Started
+                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+              <Link to="/order">
+                <Button 
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto border-orange-600 text-orange-600 hover:bg-orange-50"
+                >
+                  View Menu
+                </Button>
+              </Link>
             </div>
           </div>
-        </div>
-      </div>
-      <div className="absolute inset-y-0 right-0 w-full lg:w-1/2 lg:relative overflow-hidden">
-        <Carousel
-          className="w-full h-full"
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-        >
-          <CarouselContent className="h-full">
-            {heroImages.map((image, index) => (
-              <CarouselItem key={index} className="h-full">
-                <div className="relative h-full w-full">
-                  <img
-                    className="h-full w-full object-cover transition-opacity duration-500 opacity-20 lg:opacity-100"
-                    src={image.src}
-                    alt={image.alt}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#F97316]/80 to-transparent lg:hidden" />
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <div className="hidden lg:block">
-            <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" />
+
+          {/* Image Carousel Section */}
+          <div className={`relative transition-all duration-1000 delay-300 ${
+            isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
+          }`}>
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {heroImages.map((image, index) => (
+                    <CarouselItem key={index}>
+                      <div className="relative aspect-[16/9]">
+                        <img
+                          src={image.src}
+                          alt={image.alt}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden lg:flex" />
+                <CarouselNext className="hidden lg:flex" />
+              </Carousel>
+            </div>
+
+            {/* Decorative Elements */}
+            <div className="absolute -z-10 top-8 right-8 w-72 h-72 bg-orange-400/20 rounded-full blur-3xl" />
+            <div className="absolute -z-10 bottom-8 left-8 w-72 h-72 bg-orange-600/20 rounded-full blur-3xl" />
           </div>
-        </Carousel>
+        </div>
       </div>
     </div>
   );
