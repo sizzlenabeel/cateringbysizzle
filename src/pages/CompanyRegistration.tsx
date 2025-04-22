@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import Layout from "@/components/layout/Layout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader } from "lucide-react";
 
 const companyFormSchema = z.object({
   companyName: z.string().min(2, "Company name must be at least 2 characters"),
@@ -21,22 +24,51 @@ const companyFormSchema = z.object({
 const CompanyRegistration = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [existingCompanies, setExistingCompanies] = useState<any[]>([]);
+  const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Redirect if user is not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+  }, [user, navigate]);
+
   useEffect(() => {
     const fetchCompanies = async () => {
-      const { data, error } = await supabase
-        .from('companies')
-        .select('*');
-      
-      if (data) setExistingCompanies(data);
-      if (error) console.error('Error fetching companies:', error);
+      setIsLoadingCompanies(true);
+      try {
+        const { data, error } = await supabase
+          .from('companies')
+          .select('*')
+          .order('name');
+        
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          setExistingCompanies(data);
+        }
+      } catch (error: any) {
+        console.error('Error fetching companies:', error.message);
+        toast({
+          title: "Failed to load companies",
+          description: error.message,
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoadingCompanies(false);
+      }
     };
 
-    fetchCompanies();
-  }, []);
+    if (user) {
+      fetchCompanies();
+    }
+  }, [user, toast]);
 
   const form = useForm<z.infer<typeof companyFormSchema>>({
     resolver: zodResolver(companyFormSchema),
@@ -47,13 +79,13 @@ const CompanyRegistration = () => {
     }
   });
 
-  const handleSubmit = async (values: z.infer<typeof companyFormSchema>) => {
+  const createNewCompany = async (values: z.infer<typeof companyFormSchema>) => {
     if (!user) return;
     
     setIsLoading(true);
     try {
-      // First create the company
-      const { data: companyData, error: companyError } = await supabase
+      // Step 1: Insert the new company
+      const { data, error: insertError } = await supabase
         .from('companies')
         .insert([
           {
@@ -65,30 +97,34 @@ const CompanyRegistration = () => {
         .select()
         .single();
 
-      if (companyError) throw companyError;
+      if (insertError) throw insertError;
+      
+      if (!data || !data.id) {
+        throw new Error("Failed to create company, no ID returned");
+      }
 
-      // Then update the user's profile with the company ID
-      const { error: profileError } = await supabase
+      // Step 2: Associate user with the newly created company
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          company_id: companyData.id,
+          company_id: data.id,
           is_company_admin: true 
         })
         .eq('id', user.id);
 
-      if (profileError) throw profileError;
+      if (updateError) throw updateError;
 
       toast({
-        title: "Company Registered",
-        description: "Your company has been successfully registered."
+        title: "Success!",
+        description: "Your company has been successfully registered.",
       });
 
       navigate("/order");
     } catch (error: any) {
-      console.error("Error during company registration:", error);
+      console.error("Error during company creation:", error);
       toast({
         title: "Registration Failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive"
       });
     } finally {
@@ -96,9 +132,9 @@ const CompanyRegistration = () => {
     }
   };
 
-  const handleExistingCompanySelect = async (companyId: string) => {
+  const joinExistingCompany = async (companyId: string) => {
     if (!user) return;
-
+    
     setIsLoading(true);
     try {
       const { error } = await supabase
@@ -112,16 +148,16 @@ const CompanyRegistration = () => {
       if (error) throw error;
 
       toast({
-        title: "Company Associated",
-        description: "You have been associated with the selected company."
+        title: "Success!",
+        description: "You've been successfully associated with the company.",
       });
 
       navigate("/order");
     } catch (error: any) {
-      console.error("Error during company association:", error);
+      console.error("Error joining company:", error);
       toast({
-        title: "Association Failed",
-        description: error.message,
+        title: "Failed to Join",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive"
       });
     } finally {
@@ -129,21 +165,32 @@ const CompanyRegistration = () => {
     }
   };
 
+  if (!user) {
+    return null; // Don't render anything if user isn't authenticated (will redirect)
+  }
+
   return (
     <Layout>
       <div className="flex items-center justify-center min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-2xl my-8">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Company Registration</CardTitle>
+            <CardTitle className="text-2xl font-bold">Company Setup</CardTitle>
             <CardDescription>
-              Register your company or join an existing one
+              Create a new company or join an existing one
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium mb-4">Create New Company</h3>
+          
+          <Tabs defaultValue="create">
+            <div className="px-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="create">Create New Company</TabsTrigger>
+                <TabsTrigger value="join">Join Existing Company</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="create" className="p-6">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)}>
+                <form onSubmit={form.handleSubmit(createNewCompany)}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -188,33 +235,52 @@ const CompanyRegistration = () => {
                   <Button 
                     type="submit" 
                     disabled={isLoading} 
-                    className="w-full mt-4 bg-orange-600 hover:bg-orange-500"
+                    className="w-full mt-6 bg-orange-600 hover:bg-orange-500"
                   >
-                    {isLoading ? "Registering..." : "Register Company"}
+                    {isLoading ? (
+                      <>
+                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                        Creating Company...
+                      </>
+                    ) : (
+                      "Register Company"
+                    )}
                   </Button>
                 </form>
               </Form>
-            </div>
-
-            <div className="border-t my-6"></div>
-
-            <div>
-              <h3 className="text-lg font-medium mb-4">Or Join Existing Company</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {existingCompanies.map((company) => (
-                  <Button 
-                    key={company.id}
-                    variant="outline" 
-                    onClick={() => handleExistingCompanySelect(company.id)}
-                    disabled={isLoading}
-                    className="w-full"
-                  >
-                    {company.name}
-                  </Button>
-                ))}
+            </TabsContent>
+            
+            <TabsContent value="join" className="p-6">
+              <div className="space-y-4">
+                <h3 className="font-medium">Select an existing company to join:</h3>
+                
+                {isLoadingCompanies ? (
+                  <div className="flex justify-center py-8">
+                    <Loader className="h-8 w-8 animate-spin text-orange-600" />
+                  </div>
+                ) : existingCompanies.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-3">
+                    {existingCompanies.map((company) => (
+                      <Button 
+                        key={company.id}
+                        variant="outline" 
+                        onClick={() => joinExistingCompany(company.id)}
+                        disabled={isLoading}
+                        className="w-full justify-start h-auto py-3 text-left"
+                      >
+                        <div>
+                          <p className="font-medium">{company.name}</p>
+                          <p className="text-xs text-gray-500">{company.address}</p>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-6">No companies available to join</p>
+                )}
               </div>
-            </div>
-          </CardContent>
+            </TabsContent>
+          </Tabs>
         </Card>
       </div>
     </Layout>
