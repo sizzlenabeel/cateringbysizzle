@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +10,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any | null; userId?: string }>;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
-  createCompany: (companyData: any, userId?: string) => Promise<{ data: any | null; error: any | null }>;
+  createCompany: (data: { companyName: string; companyAddress: string }, userId?: string) => Promise<{ data: any | null; error: any | null }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,7 +22,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -31,7 +29,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -69,7 +66,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "Please check your email to confirm your account.",
       });
       
-      // Return the user ID so we can use it for company creation
       return { error: null, userId: data.user?.id };
     } catch (error: any) {
       toast({
@@ -81,9 +77,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const createCompany = async (companyData: any, userId?: string) => {
+  const createCompany = async (data: { companyName: string; companyAddress: string }, userId?: string) => {
     try {
-      // Use either the provided userId or the current logged-in user's ID
       const targetUserId = userId || user?.id;
       
       if (!targetUserId) {
@@ -93,14 +88,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
-      // First create the company with the correctly named properties
-      const { data: newCompanyData, error: companyError } = await supabase
+      const { data: companyResult, error: companyError } = await supabase
         .from('companies')
         .insert([
           {
-            name: companyData.companyName,
-            address: companyData.companyAddress,
-          },
+            name: data.companyName,
+            address: data.companyAddress,
+          }
         ])
         .select()
         .single();
@@ -110,13 +104,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { data: null, error: companyError };
       }
 
-      console.log("Company created successfully:", newCompanyData);
+      console.log("Company created successfully:", companyResult);
 
-      // Then update the user profile with company_id in a separate transaction
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
-          company_id: newCompanyData.id,
+          company_id: companyResult.id,
           is_company_admin: true
         })
         .eq('id', targetUserId);
@@ -128,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("Profile updated successfully for user:", targetUserId);
 
-      return { data: newCompanyData, error: null };
+      return { data: companyResult, error: null };
     } catch (error: any) {
       console.error("Unexpected error during company creation:", error);
       return { data: null, error };
