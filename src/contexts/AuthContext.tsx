@@ -93,7 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
-      const { data, error } = await supabase
+      // First create the company
+      const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .insert([
           {
@@ -104,25 +105,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .select()
         .single();
 
-      if (error) {
-        return { data: null, error };
+      if (companyError) {
+        console.error("Error creating company:", companyError);
+        return { data: null, error: companyError };
       }
 
-      // Update user profile with company_id and set as admin
+      console.log("Company created successfully:", companyData);
+
+      // Then update the user profile with company_id in a separate transaction
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
-          company_id: data.id,
+          company_id: companyData.id,
           is_company_admin: true
         })
         .eq('id', targetUserId);
 
       if (profileError) {
+        console.error("Error updating profile:", profileError);
         return { data: null, error: profileError };
       }
 
-      return { data, error: null };
+      console.log("Profile updated successfully for user:", targetUserId);
+
+      return { data: companyData, error: null };
     } catch (error: any) {
+      console.error("Unexpected error during company creation:", error);
       return { data: null, error };
     }
   };
