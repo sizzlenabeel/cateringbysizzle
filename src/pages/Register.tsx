@@ -8,18 +8,10 @@ import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage 
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-
 const formSchema = z.object({
   companyName: z.string().min(2, "Company name must be at least 2 characters"),
   companyAddress: z.string().min(5, "Address must be at least 5 characters"),
@@ -28,17 +20,20 @@ const formSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10 characters"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
+  path: ["confirmPassword"]
 });
-
 const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const { signUp, createCompany } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const {
+    signUp,
+    createCompany
+  } = useAuth();
   const navigate = useNavigate();
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,13 +43,11 @@ const Register = () => {
       email: "",
       phone: "",
       password: "",
-      confirmPassword: "",
-    },
+      confirmPassword: ""
+    }
   });
-
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-
     try {
       // Split contactName into first and last name
       const nameParts = values.contactName.split(' ');
@@ -62,52 +55,49 @@ const Register = () => {
       const lastName = nameParts.slice(1).join(' ') || "";
 
       // Register user
-      const { error: signUpError, userId } = await signUp(
-        values.email,
-        values.password,
-        {
-          firstName,
-          lastName,
-          phone: values.phone,
-        }
-      );
-
+      const {
+        error: signUpError,
+        userId
+      } = await signUp(values.email, values.password, {
+        firstName,
+        lastName,
+        phone: values.phone
+      });
       if (signUpError) {
         setIsLoading(false);
         return;
       }
-
       if (!userId) {
         toast({
           title: "Error creating company",
           description: "Could not get user ID after registration",
-          variant: "destructive",
+          variant: "destructive"
         });
         setIsLoading(false);
         return;
       }
 
       // Create company with the user ID from registration
-      const { error: companyError } = await createCompany({
+      const {
+        error: companyError
+      } = await createCompany({
         companyName: values.companyName,
-        companyAddress: values.companyAddress,
+        companyAddress: values.companyAddress
       }, userId);
-
       if (companyError) {
         toast({
           title: "Error creating company",
           description: companyError.message,
-          variant: "destructive",
+          variant: "destructive"
         });
         setIsLoading(false);
         return;
       }
-
       toast({
         title: "Registration successful",
-        description: "Your account and company have been created. Please check your email for verification.",
+        description: "Your account and company have been created. Please check your email for verification."
       });
-      
+
       // Navigate to login page after successful registration
       // Since the user still needs to verify their email before accessing protected routes
       navigate("/login");
@@ -116,15 +106,13 @@ const Register = () => {
       toast({
         title: "Registration failed",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  return (
-    <Layout>
+  return <Layout>
       <div className="flex items-center justify-center min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-2xl my-8">
           <CardHeader className="text-center">
@@ -139,32 +127,24 @@ const Register = () => {
                 <div>
                   <h3 className="text-lg font-medium">Company Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                    <FormField
-                      control={form.control}
-                      name="companyName"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="companyName" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Company Name</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="companyAddress"
-                      render={({ field }) => (
-                        <FormItem>
+                        </FormItem>} />
+                    <FormField control={form.control} name="companyAddress" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Company Address</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                   </div>
                 </div>
 
@@ -173,45 +153,33 @@ const Register = () => {
                 <div>
                   <h3 className="text-lg font-medium">Primary Contact</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                    <FormField
-                      control={form.control}
-                      name="contactName"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="contactName" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Full Name</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
+                        </FormItem>} />
+                    <FormField control={form.control} name="email" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Email Address</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
+                        </FormItem>} />
+                    <FormField control={form.control} name="phone" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Phone Number</FormLabel>
                           <FormControl>
                             <Input {...field} type="tel" />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                   </div>
                 </div>
 
@@ -220,43 +188,29 @@ const Register = () => {
                 <div>
                   <h3 className="text-lg font-medium">Account Security</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="password" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
                             <Input {...field} type="password" />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
+                        </FormItem>} />
+                    <FormField control={form.control} name="confirmPassword" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Confirm Password</FormLabel>
                           <FormControl>
                             <Input {...field} type="password" />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                   </div>
                 </div>
 
                 <div className="flex items-center">
-                  <input
-                    id="terms"
-                    name="terms"
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-catering-secondary focus:ring-catering-secondary"
-                    required
-                  />
+                  <input id="terms" name="terms" type="checkbox" className="h-4 w-4 rounded border-gray-300 text-catering-secondary focus:ring-catering-secondary" required />
                   <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
                     I agree to the{" "}
                     <Link to="/terms" className="text-catering-secondary hover:text-purple-700">
@@ -270,11 +224,7 @@ const Register = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col space-y-4">
-                <Button
-                  type="submit"
-                  className="w-full bg-catering-secondary hover:bg-purple-700"
-                  disabled={isLoading}
-                >
+                <Button type="submit" disabled={isLoading} className="w-full bg-orange-600 hover:bg-orange-500">
                   {isLoading ? "Creating Account..." : "Create Company Account"}
                 </Button>
                 <p className="text-center text-sm text-gray-600">
@@ -288,8 +238,6 @@ const Register = () => {
           </Form>
         </Card>
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Register;
