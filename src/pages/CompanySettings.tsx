@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,7 +44,7 @@ const CompanySettings = () => {
           companyName: company.name,
           address: company.address,
           organizationNumber: company.organization_number || "",
-          billingEmail: company.billing_email || "",
+          billingEmail: company.billing_email || "", // This field isn't in the database schema according to the error
         });
       }
     };
@@ -70,7 +71,7 @@ const CompanySettings = () => {
           name: formData.companyName,
           address: formData.address,
           organization_number: formData.organizationNumber,
-          billing_email: formData.billingEmail,
+          billing_email: formData.billingEmail, // This field isn't in the database schema according to the error
         })
         .eq('id', profile.company_id);
 
@@ -97,7 +98,7 @@ const CompanySettings = () => {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-2xl font-bold flex items-center gap-2">
               <Building className="h-6 w-6" />
-              bysizzle Settings
+              Company Settings
             </CardTitle>
             <Button
               variant="outline"
@@ -155,7 +156,7 @@ const CompanySettings = () => {
                 />
               </div>
               {isEditing && (
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-500">
                   Save Changes
                 </Button>
               )}
