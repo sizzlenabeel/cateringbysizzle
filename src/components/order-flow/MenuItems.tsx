@@ -22,7 +22,7 @@ export const MenuItems = ({
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-catering-secondary" />
+        <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
         <span className="ml-2 text-lg">Loading menus...</span>
       </div>
     );
@@ -36,7 +36,7 @@ export const MenuItems = ({
         </p>
         <Button 
           onClick={onSeedSampleData} 
-          className="bg-catering-secondary"
+          className="bg-orange-600 hover:bg-orange-500"
           disabled={isSeeding}
         >
           {isSeeding ? (
@@ -58,10 +58,9 @@ export const MenuItems = ({
         <Link
           key={menu.id}
           to={`/menu/${menu.id}`}
-          className="group"
-          style={{ textDecoration: "none" }}
+          className="group no-underline text-inherit"
         >
-          <Card className="overflow-hidden group hover:ring-2 hover:ring-orange-400 transition cursor-pointer">
+          <Card className="overflow-hidden group hover:ring-2 hover:ring-orange-400 transition cursor-pointer h-full flex flex-col">
             <div className="h-48 overflow-hidden">
               <img 
                 src={menu.image_url || "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666"} 
@@ -69,7 +68,7 @@ export const MenuItems = ({
                 className="w-full h-full object-cover"
               />
             </div>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 flex-grow flex flex-col">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="text-lg font-medium">{menu.name}</h3>
                 {menu.is_vegan && (
@@ -103,11 +102,11 @@ export const MenuItems = ({
                 </ul>
               </div>
               
-              <Link to={`/menu/${menu.id}`} tabIndex={-1}>
+              <div className="mt-auto">
                 <Button className="w-full bg-orange-600 hover:bg-orange-500 z-20 relative">
                   Customize Menu
                 </Button>
-              </Link>
+              </div>
             </CardContent>
           </Card>
         </Link>

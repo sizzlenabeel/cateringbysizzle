@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,23 +14,26 @@ import { ServingStyleSelector } from "@/components/order-flow/ServingStyleSelect
 import { DeliveryOptions } from "@/components/order-flow/DeliveryOptions";
 import { MenuItems } from "@/components/order-flow/MenuItems";
 import { VeganToggle } from "@/components/order-flow/VeganToggle";
+import { addDays } from "date-fns";
 
-const addressOptions = [
-  { id: "addr1", name: "Main Office", address: "123 Business St, Stockholm, 10044" },
-  { id: "addr2", name: "Branch Office", address: "456 Corporate Ave, Stockholm, 10067" },
-];
+// Set default date to 48 hours in the future
+const getDefaultDate = () => {
+  return addDays(new Date(), 2); // Add 48 hours (2 days)
+};
 
 const OrderFlow = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [step, setStep] = useState("event-type");
   const [deliveryTime, setDeliveryTime] = useState("10:00");
-  const [deliveryDate, setDeliveryDate] = useState<Date>(new Date());
+  const [deliveryDate, setDeliveryDate] = useState<Date>(getDefaultDate());
   const [showAddAddress, setShowAddAddress] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState(addressOptions[0]);
+  const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [newAddress, setNewAddress] = useState("");
   const [isSeeding, setIsSeeding] = useState(false);
   const [company, setCompany] = useState<any>(null);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
 
   const {
     eventTypes,
@@ -58,6 +62,43 @@ const OrderFlow = () => {
           .eq("id", profile.company_id)
           .single();
         setCompany(comp);
+        
+        // Fetch company addresses
+        const { data: companyAddresses, error } = await supabase
+          .from("company_addresses")
+          .select("*")
+          .eq("company_id", profile.company_id);
+        
+        if (error) {
+          console.error("Error fetching company addresses:", error);
+        } else if (companyAddresses && companyAddresses.length > 0) {
+          const formattedAddresses = companyAddresses.map(addr => ({
+            id: addr.id,
+            name: addr.name,
+            address: addr.address
+          }));
+          setAddresses(formattedAddresses);
+          
+          // Set default address
+          const defaultAddress = companyAddresses.find(addr => addr.is_default) || companyAddresses[0];
+          setSelectedAddress({
+            id: defaultAddress.id,
+            name: defaultAddress.name,
+            address: defaultAddress.address
+          });
+        } else {
+          // If no addresses found, create a default one based on company info
+          if (comp) {
+            const defaultAddr = {
+              id: "default",
+              name: "Company Address",
+              address: comp.address
+            };
+            setAddresses([defaultAddr]);
+            setSelectedAddress(defaultAddr);
+          }
+        }
+        setIsLoadingAddresses(false);
       }
     };
     fetchCompany();
@@ -68,22 +109,46 @@ const OrderFlow = () => {
     setStep("serving-style");
   };
 
-  const handleAddressSelect = (address: typeof addressOptions[0]) => {
+  const handleAddressSelect = (address: typeof addresses[0]) => {
     setSelectedAddress(address);
     setShowAddAddress(false);
   };
 
-  const handleAddNewAddress = () => {
-    if (newAddress.trim() !== "") {
-      const newAddressObj = {
-        id: `addr${addressOptions.length + 1}`,
-        name: `New Address ${addressOptions.length + 1}`,
-        address: newAddress
-      };
-      addressOptions.push(newAddressObj);
-      setSelectedAddress(newAddressObj);
-      setShowAddAddress(false);
-      setNewAddress("");
+  const handleAddNewAddress = async () => {
+    if (newAddress.trim() !== "" && company) {
+      try {
+        // Save to database if connected to company
+        const { data, error } = await supabase
+          .from("company_addresses")
+          .insert({
+            name: `Address ${addresses.length + 1}`,
+            address: newAddress,
+            company_id: company.id,
+            is_default: addresses.length === 0
+          })
+          .select();
+        
+        if (error) throw error;
+        
+        if (data && data[0]) {
+          const newAddressObj = {
+            id: data[0].id,
+            name: data[0].name,
+            address: data[0].address
+          };
+          setAddresses([...addresses, newAddressObj]);
+          setSelectedAddress(newAddressObj);
+          setShowAddAddress(false);
+          setNewAddress("");
+        }
+      } catch (error) {
+        console.error("Error adding new address:", error);
+        toast({
+          title: "Error adding address",
+          description: "Failed to save the new address.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -136,20 +201,24 @@ const OrderFlow = () => {
           <div className="sticky top-16 z-10 bg-white shadow-sm border-b border-gray-200">
             <div className="container mx-auto px-4 py-4">
               <div className="flex flex-col md:flex-row justify-between">
-                <DeliveryOptions
-                  deliveryTime={deliveryTime}
-                  deliveryDate={deliveryDate}
-                  selectedAddress={selectedAddress}
-                  addresses={addressOptions}
-                  showAddAddress={showAddAddress}
-                  newAddress={newAddress}
-                  onTimeChange={setDeliveryTime}
-                  onDateChange={setDeliveryDate}
-                  onAddressSelect={handleAddressSelect}
-                  onShowAddAddress={setShowAddAddress}
-                  onNewAddressChange={setNewAddress}
-                  onAddNewAddress={handleAddNewAddress}
-                />
+                {isLoadingAddresses ? (
+                  <div>Loading delivery options...</div>
+                ) : (
+                  <DeliveryOptions
+                    deliveryTime={deliveryTime}
+                    deliveryDate={deliveryDate}
+                    selectedAddress={selectedAddress || { id: "loading", name: "Loading...", address: "Loading..." }}
+                    addresses={addresses}
+                    showAddAddress={showAddAddress}
+                    newAddress={newAddress}
+                    onTimeChange={setDeliveryTime}
+                    onDateChange={setDeliveryDate}
+                    onAddressSelect={handleAddressSelect}
+                    onShowAddAddress={setShowAddAddress}
+                    onNewAddressChange={setNewAddress}
+                    onAddNewAddress={handleAddNewAddress}
+                  />
+                )}
                 <div className="flex items-center mt-4 md:mt-0">
                   <VeganToggle
                     isVegan={filters.isVegan === true}
