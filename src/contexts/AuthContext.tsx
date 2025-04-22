@@ -10,7 +10,12 @@ interface AuthContextType {
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any | null; userId?: string }>;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
-  createCompany: (data: { companyName: string; companyAddress: string }, userId?: string) => Promise<{ data: any | null; error: any | null }>;
+  createCompany: (data: { 
+    companyName: string; 
+    companyAddress: string; 
+    organizationNumber: string 
+  }, userId?: string) => Promise<{ data: any | null; error: any | null }>;
+  checkCompanyAssociation: () => Promise<boolean>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -77,7 +82,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const createCompany = async (data: { companyName: string; companyAddress: string }, userId?: string) => {
+  const checkCompanyAssociation = async () => {
+    if (!user) return false;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('company_id')
+      .eq('id', user.id)
+      .single();
+
+    if (error) {
+      console.error('Error checking company association:', error);
+      return false;
+    }
+
+    return data.company_id !== null;
+  };
+
+  const createCompany = async (data: { 
+    companyName: string; 
+    companyAddress: string; 
+    organizationNumber: string 
+  }, userId?: string) => {
     try {
       const targetUserId = userId || user?.id;
       
@@ -94,17 +120,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           {
             name: data.companyName,
             address: data.companyAddress,
+            organization_number: data.organizationNumber
           }
         ])
         .select()
         .single();
 
       if (companyError) {
-        console.error("Error creating company:", companyError);
+        console.error("Company creation error:", companyError);
         return { data: null, error: companyError };
       }
-
-      console.log("Company created successfully:", companyResult);
 
       const { error: profileError } = await supabase
         .from('profiles')
@@ -115,11 +140,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', targetUserId);
 
       if (profileError) {
-        console.error("Error updating profile:", profileError);
+        console.error("Profile update error:", profileError);
         return { data: null, error: profileError };
       }
 
-      console.log("Profile updated successfully for user:", targetUserId);
+      toast({
+        title: "Company Created",
+        description: "Your company has been successfully registered."
+      });
 
       return { data: companyResult, error: null };
     } catch (error: any) {
@@ -184,6 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signOut,
     createCompany,
+    checkCompanyAssociation
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

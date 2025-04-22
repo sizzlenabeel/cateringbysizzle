@@ -18,6 +18,7 @@ import Profile from "./pages/Profile";
 import OrderHistory from "./pages/OrderHistory";
 import CompanySettings from "./pages/CompanySettings";
 import Admin from "./pages/Admin";
+import CompanyRegistration from "./pages/CompanyRegistration";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/company-registration" element={<CompanyRegistration />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/order" element={<OrderFlow />} />
               <Route path="/menu/:id" element={<MenuCustomization />} />

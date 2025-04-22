@@ -58,6 +58,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          organization_number: string
           updated_at: string
         }
         Insert: {
@@ -67,6 +68,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          organization_number?: string
           updated_at?: string
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          organization_number?: string
           updated_at?: string
         }
         Relationships: []
@@ -589,6 +592,10 @@ export type Database = {
       get_user_company_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      user_has_no_company: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
     }
     Enums: {
