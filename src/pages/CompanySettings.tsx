@@ -44,7 +44,7 @@ const CompanySettings = () => {
           companyName: company.name,
           address: company.address,
           organizationNumber: company.organization_number || "",
-          billingEmail: company.billing_email || "", // This field isn't in the database schema according to the error
+          billingEmail: company.billing_email || "",
         });
       }
     };
@@ -71,7 +71,7 @@ const CompanySettings = () => {
           name: formData.companyName,
           address: formData.address,
           organization_number: formData.organizationNumber,
-          billing_email: formData.billingEmail, // This field isn't in the database schema according to the error
+          billing_email: formData.billingEmail,
         })
         .eq('id', profile.company_id);
 
@@ -169,3 +169,4 @@ const CompanySettings = () => {
 };
 
 export default CompanySettings;
+

@@ -53,6 +53,7 @@ export type Database = {
       companies: {
         Row: {
           address: string
+          billing_email: string | null
           created_at: string
           discount_percentage: number | null
           id: string
@@ -63,6 +64,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          billing_email?: string | null
           created_at?: string
           discount_percentage?: number | null
           id?: string
@@ -73,6 +75,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          billing_email?: string | null
           created_at?: string
           discount_percentage?: number | null
           id?: string
