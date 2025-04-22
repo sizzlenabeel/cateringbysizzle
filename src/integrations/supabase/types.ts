@@ -593,8 +593,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      is_user_company_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       user_has_no_company: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      users_in_same_company: {
+        Args: { user_id_to_check: string }
         Returns: boolean
       }
     }

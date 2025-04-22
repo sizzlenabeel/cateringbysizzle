@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ const companyFormSchema = z.object({
 const CompanyRegistration = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [existingCompanies, setExistingCompanies] = useState<any[]>([]);
-  const { createCompany, user } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -49,22 +48,35 @@ const CompanyRegistration = () => {
   });
 
   const handleSubmit = async (values: z.infer<typeof companyFormSchema>) => {
+    if (!user) return;
+    
     setIsLoading(true);
     try {
-      const { data, error } = await createCompany({
-        companyName: values.companyName,
-        companyAddress: values.companyAddress,
-        organizationNumber: values.organizationNumber
-      });
+      // First create the company
+      const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .insert([
+          {
+            name: values.companyName,
+            address: values.companyAddress,
+            organization_number: values.organizationNumber
+          }
+        ])
+        .select()
+        .single();
 
-      if (error) {
-        toast({
-          title: "Company Registration Failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
+      if (companyError) throw companyError;
+
+      // Then update the user's profile with the company ID
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          company_id: companyData.id,
+          is_company_admin: true 
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
 
       toast({
         title: "Company Registered",
@@ -73,10 +85,10 @@ const CompanyRegistration = () => {
 
       navigate("/order");
     } catch (error: any) {
-      console.error("Unexpected error:", error);
+      console.error("Error during company registration:", error);
       toast({
-        title: "Unexpected Error",
-        description: "An unexpected error occurred.",
+        title: "Registration Failed",
+        description: error.message,
         variant: "destructive"
       });
     } finally {
@@ -97,14 +109,7 @@ const CompanyRegistration = () => {
         })
         .eq('id', user.id);
 
-      if (error) {
-        toast({
-          title: "Company Association Failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
+      if (error) throw error;
 
       toast({
         title: "Company Associated",
@@ -113,10 +118,10 @@ const CompanyRegistration = () => {
 
       navigate("/order");
     } catch (error: any) {
-      console.error("Unexpected error:", error);
+      console.error("Error during company association:", error);
       toast({
-        title: "Unexpected Error",
-        description: "An unexpected error occurred.",
+        title: "Association Failed",
+        description: error.message,
         variant: "destructive"
       });
     } finally {
