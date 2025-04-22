@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,6 @@ const CompanyRegistration = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Redirect if user is not authenticated
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -46,13 +44,8 @@ const CompanyRegistration = () => {
           .select('*')
           .order('name');
         
-        if (error) {
-          throw error;
-        }
-
-        if (data) {
-          setExistingCompanies(data);
-        }
+        if (error) throw error;
+        if (data) setExistingCompanies(data);
       } catch (error: any) {
         console.error('Error fetching companies:', error.message);
         toast({
@@ -65,9 +58,7 @@ const CompanyRegistration = () => {
       }
     };
 
-    if (user) {
-      fetchCompanies();
-    }
+    if (user) fetchCompanies();
   }, [user, toast]);
 
   const form = useForm<z.infer<typeof companyFormSchema>>({
@@ -81,44 +72,45 @@ const CompanyRegistration = () => {
 
   const createNewCompany = async (values: z.infer<typeof companyFormSchema>) => {
     if (!user) return;
-    
     setIsLoading(true);
     try {
-      // Step 1: Insert the new company
       const { data, error: insertError } = await supabase
         .from('companies')
-        .insert([
-          {
-            name: values.companyName,
-            address: values.companyAddress,
-            organization_number: values.organizationNumber
-          }
-        ])
+        .insert([{
+          name: values.companyName,
+          address: values.companyAddress,
+          organization_number: values.organizationNumber
+        }])
         .select()
         .single();
-
       if (insertError) throw insertError;
-      
-      if (!data || !data.id) {
-        throw new Error("Failed to create company, no ID returned");
-      }
+      if (!data || !data.id) throw new Error("Failed to create company, no ID returned");
 
-      // Step 2: Associate user with the newly created company
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ 
+        .update({
           company_id: data.id,
           is_company_admin: true 
         })
         .eq('id', user.id);
-
-      if (updateError) throw updateError;
+      if (updateError) {
+        if (updateError.code === '42501') {
+          toast({
+            title: "Permission denied",
+            description: "You do not have permission to update this profile. (RLS policy blocked)",
+            variant: "destructive"
+          });
+        } else {
+          throw updateError;
+        }
+        setIsLoading(false);
+        return;
+      }
 
       toast({
         title: "Success!",
         description: "Your company has been successfully registered.",
       });
-
       navigate("/order");
     } catch (error: any) {
       console.error("Error during company creation:", error);
@@ -134,7 +126,6 @@ const CompanyRegistration = () => {
 
   const joinExistingCompany = async (companyId: string) => {
     if (!user) return;
-    
     setIsLoading(true);
     try {
       const { error } = await supabase
@@ -145,13 +136,24 @@ const CompanyRegistration = () => {
         })
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42501') {
+          toast({
+            title: "Permission denied",
+            description: "You do not have permission to update this profile. (RLS policy blocked)",
+            variant: "destructive"
+          });
+        } else {
+          throw error;
+        }
+        setIsLoading(false);
+        return;
+      }
 
       toast({
         title: "Success!",
         description: "You've been successfully associated with the company.",
       });
-
       navigate("/order");
     } catch (error: any) {
       console.error("Error joining company:", error);
@@ -165,9 +167,7 @@ const CompanyRegistration = () => {
     }
   };
 
-  if (!user) {
-    return null; // Don't render anything if user isn't authenticated (will redirect)
-  }
+  if (!user) return null;
 
   return (
     <Layout>
@@ -176,7 +176,8 @@ const CompanyRegistration = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">Company Setup</CardTitle>
             <CardDescription>
-              Create a new company or join an existing one
+              To continue, you must either join your company or create a new one.<br />
+              (You can only update your own profile, enforced securely by our policies.)
             </CardDescription>
           </CardHeader>
           
@@ -253,7 +254,6 @@ const CompanyRegistration = () => {
             <TabsContent value="join" className="p-6">
               <div className="space-y-4">
                 <h3 className="font-medium">Select an existing company to join:</h3>
-                
                 {isLoadingCompanies ? (
                   <div className="flex justify-center py-8">
                     <Loader className="h-8 w-8 animate-spin text-orange-600" />
