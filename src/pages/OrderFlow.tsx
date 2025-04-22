@@ -1,5 +1,6 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronLeft } from "lucide-react";
@@ -20,6 +21,7 @@ const addressOptions = [
 
 const OrderFlow = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [step, setStep] = useState("event-type");
   const [deliveryTime, setDeliveryTime] = useState("10:00");
   const [deliveryDate, setDeliveryDate] = useState<Date>(new Date());
@@ -27,6 +29,7 @@ const OrderFlow = () => {
   const [selectedAddress, setSelectedAddress] = useState(addressOptions[0]);
   const [newAddress, setNewAddress] = useState("");
   const [isSeeding, setIsSeeding] = useState(false);
+  const [company, setCompany] = useState<any>(null);
 
   const {
     eventTypes,
@@ -39,6 +42,26 @@ const OrderFlow = () => {
     isLoading,
     refetchMenuItems
   } = useMenuData();
+
+  useEffect(() => {
+    const fetchCompany = async () => {
+      if (!user?.id) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("company_id")
+        .eq("id", user.id)
+        .single();
+      if (profile?.company_id) {
+        const { data: comp } = await supabase
+          .from("companies")
+          .select("*")
+          .eq("id", profile.company_id)
+          .single();
+        setCompany(comp);
+      }
+    };
+    fetchCompany();
+  }, [user?.id]);
 
   const handleEventTypeSelect = (typeId: string) => {
     setEventType(typeId);
@@ -96,90 +119,104 @@ const OrderFlow = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50">
-        <div className="sticky top-16 z-10 bg-white shadow-sm border-b border-gray-200">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex flex-col md:flex-row justify-between">
-              <DeliveryOptions
-                deliveryTime={deliveryTime}
-                deliveryDate={deliveryDate}
-                selectedAddress={selectedAddress}
-                addresses={addressOptions}
-                showAddAddress={showAddAddress}
-                newAddress={newAddress}
-                onTimeChange={setDeliveryTime}
-                onDateChange={setDeliveryDate}
-                onAddressSelect={handleAddressSelect}
-                onShowAddAddress={setShowAddAddress}
-                onNewAddressChange={setNewAddress}
-                onAddNewAddress={handleAddNewAddress}
-              />
-              <div className="flex items-center mt-4 md:mt-0">
-                <VeganToggle
-                  isVegan={filters.isVegan === true}
-                  onToggle={(checked) => setVeganOnly(checked ? true : undefined)}
+      <div className="container mx-auto py-8">
+        {company && (
+          <div className="mb-8 bg-orange-50 border border-orange-200 rounded p-4 flex flex-col md:flex-row items-center justify-between">
+            <div>
+              <div className="text-lg font-semibold text-orange-700">Company: {company.name}</div>
+              <div className="text-sm text-gray-600">Org No: {company.organization_number}</div>
+              <div className="text-sm text-gray-600">Address: {company.address}</div>
+              {company.billing_email && (
+                <div className="text-sm text-gray-600">Billing email: {company.billing_email}</div>
+              )}
+            </div>
+          </div>
+        )}
+        <div className="min-h-screen bg-gray-50">
+          <div className="sticky top-16 z-10 bg-white shadow-sm border-b border-gray-200">
+            <div className="container mx-auto px-4 py-4">
+              <div className="flex flex-col md:flex-row justify-between">
+                <DeliveryOptions
+                  deliveryTime={deliveryTime}
+                  deliveryDate={deliveryDate}
+                  selectedAddress={selectedAddress}
+                  addresses={addressOptions}
+                  showAddAddress={showAddAddress}
+                  newAddress={newAddress}
+                  onTimeChange={setDeliveryTime}
+                  onDateChange={setDeliveryDate}
+                  onAddressSelect={handleAddressSelect}
+                  onShowAddAddress={setShowAddAddress}
+                  onNewAddressChange={setNewAddress}
+                  onAddNewAddress={handleAddNewAddress}
                 />
+                <div className="flex items-center mt-4 md:mt-0">
+                  <VeganToggle
+                    isVegan={filters.isVegan === true}
+                    onToggle={(checked) => setVeganOnly(checked ? true : undefined)}
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="container mx-auto py-8 px-4">
-          <Tabs value={step} onValueChange={setStep} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="event-type">1. Event Type</TabsTrigger>
-              <TabsTrigger value="serving-style">2. Serving Style</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="event-type" className="space-y-8">
-              <EventTypeSelector
-                eventTypes={eventTypes}
-                selectedEventTypeId={filters.eventTypeId}
-                isLoading={isLoading}
-                onSelect={handleEventTypeSelect}
-              />
-
-              <div className="mt-8">
-                <h2 className="text-2xl font-semibold mb-6">Browse All Available Menus</h2>
-                <MenuItems
-                  menuItems={menuItems}
-                  isLoading={isLoading}
-                  isSeeding={isSeeding}
-                  onSeedSampleData={handleSeedSampleData}
-                />
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="serving-style" className="space-y-8">
-              <div className="flex items-center mb-4">
-                <Button 
-                  variant="ghost" 
-                  className="flex items-center gap-1"
-                  onClick={() => setStep("event-type")}
-                >
-                  <ChevronLeft className="h-4 w-4" /> 
-                  Back to Event Type
-                </Button>
-              </div>
+          <div className="container mx-auto py-8 px-4">
+            <Tabs value={step} onValueChange={setStep} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-8">
+                <TabsTrigger value="event-type">1. Event Type</TabsTrigger>
+                <TabsTrigger value="serving-style">2. Serving Style</TabsTrigger>
+              </TabsList>
               
-              <ServingStyleSelector
-                servingStyles={servingStyles}
-                selectedServingStyleId={filters.servingStyleId}
-                isLoading={isLoading}
-                onSelect={setServingStyle}
-              />
-
-              <div className="mt-8">
-                <h2 className="text-2xl font-semibold mb-6">Available Menus</h2>
-                <MenuItems
-                  menuItems={menuItems}
+              <TabsContent value="event-type" className="space-y-8">
+                <EventTypeSelector
+                  eventTypes={eventTypes}
+                  selectedEventTypeId={filters.eventTypeId}
                   isLoading={isLoading}
-                  isSeeding={isSeeding}
-                  onSeedSampleData={handleSeedSampleData}
+                  onSelect={handleEventTypeSelect}
                 />
-              </div>
-            </TabsContent>
-          </Tabs>
+
+                <div className="mt-8">
+                  <h2 className="text-2xl font-semibold mb-6">Browse All Available Menus</h2>
+                  <MenuItems
+                    menuItems={menuItems}
+                    isLoading={isLoading}
+                    isSeeding={isSeeding}
+                    onSeedSampleData={handleSeedSampleData}
+                  />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="serving-style" className="space-y-8">
+                <div className="flex items-center mb-4">
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center gap-1"
+                    onClick={() => setStep("event-type")}
+                  >
+                    <ChevronLeft className="h-4 w-4" /> 
+                    Back to Event Type
+                  </Button>
+                </div>
+                
+                <ServingStyleSelector
+                  servingStyles={servingStyles}
+                  selectedServingStyleId={filters.servingStyleId}
+                  isLoading={isLoading}
+                  onSelect={setServingStyle}
+                />
+
+                <div className="mt-8">
+                  <h2 className="text-2xl font-semibold mb-6">Available Menus</h2>
+                  <MenuItems
+                    menuItems={menuItems}
+                    isLoading={isLoading}
+                    isSeeding={isSeeding}
+                    onSeedSampleData={handleSeedSampleData}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
     </Layout>

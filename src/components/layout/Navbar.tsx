@@ -60,6 +60,11 @@ const Navbar = () => {
                       <NavigationMenuContent>
                         <ul className="grid w-[200px] gap-3 p-4">
                           <li>
+                            <Link to="/profile" className="block p-2 hover:bg-orange-50 rounded-md">
+                              Profile
+                            </Link>
+                          </li>
+                          <li>
                             <Link to="/order-history" className="block p-2 hover:bg-orange-50 rounded-md">
                               Order History
                             </Link>
@@ -163,6 +168,9 @@ const Navbar = () => {
                 </Link>
                 <Link to="/order-history" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
                   Order History
+                </Link>
+                <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
+                  Profile
                 </Link>
                 <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
                   About & Contact

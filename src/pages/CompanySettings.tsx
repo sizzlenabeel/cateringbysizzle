@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,14 +16,13 @@ const CompanySettings = () => {
   const [formData, setFormData] = useState({
     companyName: "bysizzle",
     address: "Kungssätravägen 15, 12737 Stockholm",
-    discountPercentage: "",
+    organizationNumber: "",
+    billingEmail: "",
   });
 
   useEffect(() => {
     const loadCompanyData = async () => {
       if (!user?.id) return;
-
-      // First get the user's profile to get the company_id
       const { data: profile } = await supabase
         .from('profiles')
         .select('company_id')
@@ -33,27 +31,22 @@ const CompanySettings = () => {
 
       if (!profile?.company_id) return;
 
-      // Then get the company details
       const { data: company, error } = await supabase
         .from('companies')
         .select('*')
         .eq('id', profile.company_id)
         .single();
 
-      if (error) {
-        console.error('Error loading company:', error);
-        return;
-      }
-
+      if (error) { console.error('Error loading company:', error); return; }
       if (company) {
         setFormData({
           companyName: company.name,
           address: company.address,
-          discountPercentage: company.discount_percentage?.toString() || "0",
+          organizationNumber: company.organization_number || "",
+          billingEmail: company.billing_email || "",
         });
       }
     };
-
     loadCompanyData();
   }, [user?.id]);
 
@@ -76,7 +69,8 @@ const CompanySettings = () => {
         .update({
           name: formData.companyName,
           address: formData.address,
-          discount_percentage: parseInt(formData.discountPercentage) || 0,
+          organization_number: formData.organizationNumber,
+          billing_email: formData.billingEmail,
         })
         .eq('id', profile.company_id);
 
@@ -139,15 +133,23 @@ const CompanySettings = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="discountPercentage">Discount Percentage</Label>
+                <Label htmlFor="organizationNumber">Organization Number</Label>
                 <Input
-                  id="discountPercentage"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.discountPercentage}
+                  id="organizationNumber"
+                  value={formData.organizationNumber}
                   onChange={(e) =>
-                    setFormData({ ...formData, discountPercentage: e.target.value })
+                    setFormData({ ...formData, organizationNumber: e.target.value })
+                  }
+                  readOnly={!isEditing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="billingEmail">Invoice Email Address</Label>
+                <Input
+                  id="billingEmail"
+                  value={formData.billingEmail}
+                  onChange={(e) =>
+                    setFormData({ ...formData, billingEmail: e.target.value })
                   }
                   readOnly={!isEditing}
                 />
