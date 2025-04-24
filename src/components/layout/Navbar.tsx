@@ -1,6 +1,7 @@
+
 import { Button } from "@/components/ui/button";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, User, LogOut, ShoppingCart } from "lucide-react";
+import { Menu, User, LogOut, ShoppingCart, Settings, PackageSearch, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,21 +57,37 @@ const Navbar = () => {
                       </Link>
                     </NavigationMenuItem>
                     <NavigationMenuItem>
-                      <NavigationMenuTrigger>My Account</NavigationMenuTrigger>
+                      <NavigationMenuTrigger className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-orange-600" />
+                        My Account
+                        <ChevronDown className="h-4 w-4 text-orange-600" />
+                      </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <ul className="grid w-[200px] gap-3 p-4">
+                        <ul className="w-[200px] p-3 space-y-2">
                           <li>
-                            <Link to="/profile" className="block p-2 hover:bg-orange-50 rounded-md">
-                              Profile
+                            <Link 
+                              to="/profile"
+                              className="flex items-center gap-2 p-2 hover:bg-orange-50 rounded-md"
+                            >
+                              <User className="h-4 w-4 text-orange-600" />
+                              My Profile
                             </Link>
                           </li>
                           <li>
-                            <Link to="/order-history" className="block p-2 hover:bg-orange-50 rounded-md">
+                            <Link 
+                              to="/order-history" 
+                              className="flex items-center gap-2 p-2 hover:bg-orange-50 rounded-md"
+                            >
+                              <PackageSearch className="h-4 w-4 text-orange-600" />
                               Order History
                             </Link>
                           </li>
                           <li>
-                            <Link to="/company-settings" className="block p-2 hover:bg-orange-50 rounded-md">
+                            <Link 
+                              to="/company-settings" 
+                              className="flex items-center gap-2 p-2 hover:bg-orange-50 rounded-md"
+                            >
+                              <Settings className="h-4 w-4 text-orange-600" />
                               Company Settings
                             </Link>
                           </li>
@@ -90,7 +107,7 @@ const Navbar = () => {
                 <div className="ml-4 flex items-center">
                   <Link to="/cart">
                     <Button variant="ghost" className="flex items-center gap-2 mr-4 relative">
-                      <ShoppingCart className="h-4 w-4" />
+                      <ShoppingCart className="h-4 w-4 text-orange-600" />
                       Cart
                       {cartItemCount > 0 && (
                         <span className="absolute -top-2 -right-2 bg-orange-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -104,7 +121,7 @@ const Navbar = () => {
                     className="flex items-center gap-2"
                     onClick={handleLogout}
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-4 w-4 text-orange-600" />
                     Log out
                   </Button>
                 </div>
@@ -142,7 +159,7 @@ const Navbar = () => {
           <div className="md:hidden flex items-center">
             {isLoggedIn && (
               <Link to="/cart" className="mr-4 relative">
-                <ShoppingCart className="h-6 w-6" />
+                <ShoppingCart className="h-6 w-6 text-orange-600" />
                 {cartItemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-orange-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {cartItemCount}
@@ -152,7 +169,7 @@ const Navbar = () => {
             )}
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100" aria-expanded="false">
               <span className="sr-only">Open main menu</span>
-              <Menu className="block h-6 w-6" aria-hidden="true" />
+              <Menu className="block h-6 w-6 text-orange-600" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -163,16 +180,19 @@ const Navbar = () => {
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {isLoggedIn && (
               <>
-                <Link to="/order" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
+                <Link to="/order" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50">
                   Order
                 </Link>
-                <Link to="/order-history" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
+                <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50">
+                  My Profile
+                </Link>
+                <Link to="/order-history" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50">
                   Order History
                 </Link>
-                <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
-                  Profile
+                <Link to="/company-settings" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50">
+                  Company Settings
                 </Link>
-                <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
+                <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50">
                   About & Contact
                 </Link>
                 <div className="border-t border-gray-200 mt-4 pt-4">

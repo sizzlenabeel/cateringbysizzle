@@ -15,7 +15,7 @@ export const VeganToggle = ({ isVegan, onToggle }: VeganToggleProps) => {
         id="vegan-mode" 
         checked={isVegan}
         onCheckedChange={onToggle}
-        className="data-[state=checked]:bg-green-600"
+        className="data-[state=checked]:bg-orange-600"
       />
       <Label htmlFor="vegan-mode" className="text-sm font-medium">
         Vegan Options Only

@@ -1,4 +1,3 @@
-
 // Refactored OrderFlow, now composes new components.
 
 import React, { useState } from "react";
@@ -22,6 +21,7 @@ const getDefaultDate = () => {
 const OrderFlow = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [isVegan, setIsVegan] = useState(false);
 
   const [deliveryTime, setDeliveryTime] = useState("10:00");
   const [deliveryDate, setDeliveryDate] = useState<Date>(getDefaultDate());
@@ -33,8 +33,6 @@ const OrderFlow = () => {
   const { 
     company, addresses, selectedAddress, setSelectedAddress, isLoadingAddresses, addAddress 
   } = useOrderAddresses(user?.id);
-
-  // Vegan filter logic moved to OrderTabsContent
 
   const handleAddNewAddress = async () => {
     if (newAddress.trim() !== "") {
@@ -109,8 +107,8 @@ const OrderFlow = () => {
                 )}
                 <div className="flex items-center mt-4 md:mt-0">
                   <VeganToggle
-                    isVegan={false} // Controlled inside OrderTabsContent
-                    onToggle={() => {}}
+                    isVegan={isVegan}
+                    onToggle={setIsVegan}
                   />
                 </div>
               </div>
@@ -121,6 +119,7 @@ const OrderFlow = () => {
             <OrderTabsContent
               isSeeding={isSeeding}
               onSeedSampleData={handleSeedSampleData}
+              isVegan={isVegan}
             />
           </div>
         </div>
