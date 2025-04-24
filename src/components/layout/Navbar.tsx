@@ -19,7 +19,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { cartItems } = useCart();
-  const { user, signOut } = useAuth();
+  const { user, isAdmin } = useAuth();
   
   const isLoggedIn = !!user;
   
@@ -55,33 +55,33 @@ const Navbar = () => {
                         </NavigationMenuLink>
                       </Link>
                     </NavigationMenuItem>
+                    {isAdmin && (
+                      <NavigationMenuItem>
+                        <Link to="/admin">
+                          <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                            Admin Dashboard
+                          </NavigationMenuLink>
+                        </Link>
+                      </NavigationMenuItem>
+                    )}
                     <NavigationMenuItem>
-                      <NavigationMenuTrigger>My Account</NavigationMenuTrigger>
-                      <NavigationMenuContent>
-                        <ul className="grid w-[200px] gap-3 p-4">
-                          <li>
-                            <Link to="/profile" className="block p-2 hover:bg-orange-50 rounded-md">
-                              Profile
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="/order-history" className="block p-2 hover:bg-orange-50 rounded-md">
-                              Order History
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="/company-settings" className="block p-2 hover:bg-orange-50 rounded-md">
-                              Company Settings
-                            </Link>
-                          </li>
-                        </ul>
-                      </NavigationMenuContent>
+                      <Link to="/profile" className="block p-2 hover:bg-orange-50 rounded-md">
+                        Profile
+                      </Link>
                     </NavigationMenuItem>
                     <NavigationMenuItem>
-                      <Link to="/contact">
-                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                          About & Contact
-                        </NavigationMenuLink>
+                      <Link to="/order-history" className="block p-2 hover:bg-orange-50 rounded-md">
+                        Order History
+                      </Link>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <Link to="/company-settings" className="block p-2 hover:bg-orange-50 rounded-md">
+                        Company Settings
+                      </Link>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <Link to="/contact" className="block p-2 hover:bg-orange-50 rounded-md">
+                        About & Contact
                       </Link>
                     </NavigationMenuItem>
                   </NavigationMenuList>
@@ -166,6 +166,11 @@ const Navbar = () => {
                 <Link to="/order" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
                   Order
                 </Link>
+                {isAdmin && (
+                  <Link to="/admin" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
+                    Admin Dashboard
+                  </Link>
+                )}
                 <Link to="/order-history" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-orange-50" onClick={() => setIsMenuOpen(false)}>
                   Order History
                 </Link>
