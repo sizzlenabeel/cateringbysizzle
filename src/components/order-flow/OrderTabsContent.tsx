@@ -6,7 +6,6 @@ import { ChevronLeft } from "lucide-react";
 import { EventTypeSelector } from "./EventTypeSelector";
 import { ServingStyleSelector } from "./ServingStyleSelector";
 import { MenuItems } from "./MenuItems";
-import { VeganToggle } from "./VeganToggle";
 import { useMenuData } from "@/hooks/useMenuData";
 
 type OrderTabStep = "event-type" | "serving-style";
@@ -14,9 +13,10 @@ type OrderTabStep = "event-type" | "serving-style";
 type Props = {
   isSeeding: boolean;
   onSeedSampleData: () => void;
+  isVegan: boolean;  // Added isVegan prop to the type definition
 };
 
-export const OrderTabsContent = ({ isSeeding, onSeedSampleData }: Props) => {
+export const OrderTabsContent = ({ isSeeding, onSeedSampleData, isVegan }: Props) => {
   const [step, setStep] = useState<OrderTabStep>("event-type");
   const {
     eventTypes,
@@ -29,6 +29,11 @@ export const OrderTabsContent = ({ isSeeding, onSeedSampleData }: Props) => {
     isLoading,
     refetchMenuItems
   } = useMenuData();
+
+  // Use the isVegan prop to set vegan filter
+  React.useEffect(() => {
+    setVeganOnly(isVegan);
+  }, [isVegan, setVeganOnly]);
 
   const handleEventTypeSelect = (typeId: string) => {
     setEventType(typeId);
