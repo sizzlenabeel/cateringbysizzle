@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Layout from "@/components/layout/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader } from "lucide-react";
+import { CompanySearch } from "@/components/CompanySearch";
 
 const companyFormSchema = z.object({
   companyName: z.string().min(2, "Company name must be at least 2 characters"),
@@ -253,31 +254,34 @@ const CompanyRegistration = () => {
             
             <TabsContent value="join" className="p-6">
               <div className="space-y-4">
-                <h3 className="font-medium">Select an existing company to join:</h3>
+                <h3 className="font-medium">Search and select your company:</h3>
+                <CompanySearch onCompanySelect={joinExistingCompany} />
+                
                 {isLoadingCompanies ? (
                   <div className="flex justify-center py-8">
                     <Loader className="h-8 w-8 animate-spin text-orange-600" />
                   </div>
                 ) : existingCompanies.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-3">
-                    {existingCompanies.map((company) => (
-                      <Button 
-                        key={company.id}
-                        variant="outline" 
-                        onClick={() => joinExistingCompany(company.id)}
-                        disabled={isLoading}
-                        className="w-full justify-start h-auto py-3 text-left"
-                      >
-                        <div>
-                          <p className="font-medium">{company.name}</p>
-                          <p className="text-xs text-gray-500">{company.address}</p>
-                        </div>
-                      </Button>
-                    ))}
+                  <div className="mt-6">
+                    <h4 className="text-sm font-medium text-gray-500 mb-3">Or select from recently added companies:</h4>
+                    <div className="grid grid-cols-1 gap-3">
+                      {existingCompanies.map((company) => (
+                        <Button 
+                          key={company.id}
+                          variant="outline" 
+                          onClick={() => joinExistingCompany(company.id)}
+                          disabled={isLoading}
+                          className="w-full justify-start h-auto py-3 text-left"
+                        >
+                          <div>
+                            <p className="font-medium">{company.name}</p>
+                            <p className="text-xs text-gray-500">{company.address}</p>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-6">No companies available to join</p>
-                )}
+                ) : null}
               </div>
             </TabsContent>
           </Tabs>

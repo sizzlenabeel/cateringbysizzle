@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Carousel,
   CarouselContent,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const heroImages = [
   {
@@ -28,10 +29,20 @@ const heroImages = [
 
 const Hero = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  const handleOrderClick = () => {
+    if (user) {
+      navigate('/order');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="relative min-h-[85vh] bg-gradient-to-br from-orange-50 to-orange-100 overflow-hidden">
@@ -58,24 +69,22 @@ const Hero = () => {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link to="/register">
-                <Button 
-                  size="lg"
-                  className="w-full sm:w-auto bg-orange-600 hover:bg-orange-500 group shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  Get Started
-                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </Link>
-              <Link to="/order">
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  className="w-full sm:w-auto border-orange-600 text-orange-600 hover:bg-orange-50"
-                >
-                  View Menu
-                </Button>
-              </Link>
+              <Button 
+                size="lg"
+                onClick={handleOrderClick}
+                className="w-full sm:w-auto bg-orange-600 hover:bg-orange-500 group shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Order Now
+                <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+              </Button>
+              <Button 
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto border-orange-600 text-orange-600 hover:bg-orange-50"
+                onClick={() => navigate('/order')}
+              >
+                View Menu
+              </Button>
             </div>
           </div>
 
