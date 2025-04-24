@@ -19,7 +19,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { cartItems } = useCart();
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut } = useAuth();
   
   const isLoggedIn = !!user;
   
@@ -84,15 +84,6 @@ const Navbar = () => {
                         </NavigationMenuLink>
                       </Link>
                     </NavigationMenuItem>
-                    {isAdmin && (
-                      <NavigationMenuItem>
-                        <Link to="/admin">
-                          <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                            Admin Dashboard
-                          </NavigationMenuLink>
-                        </Link>
-                      </NavigationMenuItem>
-                    )}
                   </NavigationMenuList>
                 </NavigationMenu>
                 
