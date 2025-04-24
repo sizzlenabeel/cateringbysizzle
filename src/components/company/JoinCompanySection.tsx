@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -61,7 +61,7 @@ export const JoinCompanySection = ({ userId, onSuccess }: JoinCompanySectionProp
   };
   
   // Fetch initial list of companies
-  useState(() => {
+  useEffect(() => {
     const fetchCompanies = async () => {
       setIsLoadingCompanies(true);
       try {
@@ -86,7 +86,7 @@ export const JoinCompanySection = ({ userId, onSuccess }: JoinCompanySectionProp
     };
 
     fetchCompanies();
-  }, []);
+  }, [toast]);
 
   return (
     <div className="space-y-4">
