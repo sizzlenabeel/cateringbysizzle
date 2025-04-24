@@ -1,10 +1,11 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import ProductsManager from "@/components/admin/ProductsManager";
 import MenuItemsManager from "@/components/admin/MenuItemsManager";
 import EventTypesManager from "@/components/admin/EventTypesManager";
@@ -13,17 +14,48 @@ import RelationshipsManager from "@/components/admin/RelationshipsManager";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("products");
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Redirect if not authenticated - in a real app, you'd check for admin role
-  if (!user) {
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const { data, error } = await supabase.rpc('is_admin');
+        if (error) throw error;
+        setIsAdmin(data);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    if (user) {
+      checkAdminStatus();
+    }
+  }, [user]);
+
+  // Loading state while checking admin status
+  if (isAdmin === null) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-8 px-4">
+          <p>Checking permissions...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Redirect if not authenticated or not admin
+  if (!user || !isAdmin) {
     toast({
       title: "Access denied",
-      description: "You need to be logged in to access the admin area.",
+      description: !user 
+        ? "You need to be logged in to access the admin area."
+        : "You don't have admin privileges to access this area.",
       variant: "destructive",
     });
-    return <Navigate to="/login" />;
+    return <Navigate to="/" />;
   }
 
   return (
