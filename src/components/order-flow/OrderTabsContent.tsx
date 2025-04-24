@@ -9,13 +9,15 @@ import { MenuItems } from "./MenuItems";
 import { VeganToggle } from "./VeganToggle";
 import { useMenuData } from "@/hooks/useMenuData";
 
+type OrderTabStep = "event-type" | "serving-style";
+
 type Props = {
   isSeeding: boolean;
   onSeedSampleData: () => void;
 };
 
 export const OrderTabsContent = ({ isSeeding, onSeedSampleData }: Props) => {
-  const [step, setStep] = useState<"event-type" | "serving-style">("event-type");
+  const [step, setStep] = useState<OrderTabStep>("event-type");
   const {
     eventTypes,
     servingStyles,
@@ -33,8 +35,15 @@ export const OrderTabsContent = ({ isSeeding, onSeedSampleData }: Props) => {
     setStep("serving-style");
   };
 
+  const handleTabChange = (value: string) => {
+    // Ensure the value is one of our allowed step types
+    if (value === "event-type" || value === "serving-style") {
+      setStep(value);
+    }
+  };
+
   return (
-    <Tabs value={step} onValueChange={setStep} className="w-full">
+    <Tabs value={step} onValueChange={handleTabChange} className="w-full">
       <TabsList className="grid w-full grid-cols-2 mb-8">
         <TabsTrigger value="event-type">1. Event Type</TabsTrigger>
         <TabsTrigger value="serving-style">2. Serving Style</TabsTrigger>
