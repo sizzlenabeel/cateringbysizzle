@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,8 +68,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const signOut = async () => {
+    try {
+      // Call Supabase signOut method
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        // If there's an error, throw it to be caught by the catch block
+        throw error;
+      }
+
+      // Reset all state
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+
+      // Show a success toast
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error: any) {
+      // Handle any errors during logout
+      toast({
+        title: "Logout Error",
+        description: error.message || "An error occurred while logging out.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
@@ -160,22 +193,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         variant: "destructive",
       });
       return { error };
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
     }
   };
 
