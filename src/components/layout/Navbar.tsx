@@ -19,14 +19,14 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { cartItems } = useCart();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, signOut } = useAuth(); // Added signOut here
   
   const isLoggedIn = !!user;
   
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleLogout = async () => {
-    await signOut();
+    await signOut(); // Now this should work
     setIsMenuOpen(false);
     navigate("/");
   };
