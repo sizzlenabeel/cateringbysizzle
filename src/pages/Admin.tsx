@@ -13,17 +13,17 @@ import RelationshipsManager from "@/components/admin/RelationshipsManager";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("products");
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
 
-  // Redirect if not authenticated - in a real app, you'd check for admin role
-  if (!user) {
+  // Check for admin access
+  if (!user || !isAdmin) {
     toast({
       title: "Access denied",
-      description: "You need to be logged in to access the admin area.",
+      description: "You need to be an admin to access this area.",
       variant: "destructive",
     });
-    return <Navigate to="/login" />;
+    return <Navigate to="/order" />;
   }
 
   return (
