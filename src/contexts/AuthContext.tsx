@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isAdmin: boolean;
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any | null; userId?: string }>;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
@@ -20,22 +21,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
+
+  // Function to fetch and set admin status
+  const fetchAdminStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching admin status:', error);
+        return;
+      }
+      
+      setIsAdmin(data?.is_admin ?? false);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log("Auth state changed:", event);
         setSession(session);
-        setUser(session?.user ?? null);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        
+        if (currentUser) {
+          await fetchAdminStatus(currentUser.id);
+        } else {
+          setIsAdmin(false);
+        }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      
+      if (currentUser) {
+        await fetchAdminStatus(currentUser.id);
+      }
       setLoading(false);
     });
 
@@ -138,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
+      setIsAdmin(false); // Reset admin status on sign out
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
@@ -155,6 +191,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     session,
     loading,
+    isAdmin,
     signUp,
     signIn,
     signOut,

@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
@@ -12,18 +11,17 @@ import ServingStylesManager from "@/components/admin/ServingStylesManager";
 import RelationshipsManager from "@/components/admin/RelationshipsManager";
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState("products");
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
 
-  // Redirect if not authenticated - in a real app, you'd check for admin role
-  if (!user) {
+  // Redirect if not authenticated or not admin
+  if (!user || !isAdmin) {
     toast({
       title: "Access denied",
-      description: "You need to be logged in to access the admin area.",
+      description: "You need to be an admin to access this area.",
       variant: "destructive",
     });
-    return <Navigate to="/login" />;
+    return <Navigate to="/" />;
   }
 
   return (
@@ -31,32 +29,27 @@ const Admin = () => {
       <div className="container mx-auto py-8 px-4">
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-5 mb-8">
+        <Tabs defaultValue="products" className="w-[400px]">
+          <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="menu-items">Menu Items</TabsTrigger>
             <TabsTrigger value="event-types">Event Types</TabsTrigger>
             <TabsTrigger value="serving-styles">Serving Styles</TabsTrigger>
             <TabsTrigger value="relationships">Relationships</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="products" className="space-y-4">
+          <TabsContent value="products">
             <ProductsManager />
           </TabsContent>
-          
-          <TabsContent value="menu-items" className="space-y-4">
+          <TabsContent value="menu-items">
             <MenuItemsManager />
           </TabsContent>
-          
-          <TabsContent value="event-types" className="space-y-4">
+          <TabsContent value="event-types">
             <EventTypesManager />
           </TabsContent>
-          
-          <TabsContent value="serving-styles" className="space-y-4">
+          <TabsContent value="serving-styles">
             <ServingStylesManager />
           </TabsContent>
-          
-          <TabsContent value="relationships" className="space-y-4">
+          <TabsContent value="relationships">
             <RelationshipsManager />
           </TabsContent>
         </Tabs>
