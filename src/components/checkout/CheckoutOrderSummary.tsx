@@ -40,10 +40,23 @@ export const CheckoutOrderSummary = () => {
           {cartItems.map((item) => {
             const menuItem = menuItems?.find(mi => mi.id === item.menuId);
             return (
-              <div key={item.id} className="flex justify-between items-start">
-                <div>
+              <div key={item.id} className="flex justify-between items-start border-b pb-4">
+                <div className="space-y-1">
                   <div className="font-medium">{menuItem?.name}</div>
                   <div className="text-sm text-gray-600">Quantity: {item.quantity}</div>
+                  {item.selectedSubProducts && item.selectedSubProducts.length > 0 && (
+                    <div className="text-sm text-gray-500">
+                      <p className="font-medium mb-1">Selected options:</p>
+                      <ul className="list-disc pl-4">
+                        {item.selectedSubProducts.map((subProductId) => {
+                          const subProduct = menuItem?.sub_products?.find(sp => sp.id === subProductId);
+                          return (
+                            <li key={subProductId}>{subProduct?.name}</li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 <div className="font-medium">
                   {formatSEK(item.totalPrice * item.quantity)}
