@@ -7,6 +7,8 @@ import { QuantitySelector } from "./QuantitySelector";
 import { PriceSummary } from "./PriceSummary";
 import { SubProductList } from "./SubProductList";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/Button";
+import { ArrowLeft } from "@/components/Icons";
 
 interface MenuCustomizationContentProps {
   menuItem: MenuItemWithRelations;
@@ -90,6 +92,17 @@ export const MenuCustomizationContent = ({
         ) : (
           <div className="hidden md:grid md:grid-cols-2 gap-8">
             <div className="flex flex-col space-y-6">
+              <div>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigate("/order")}
+                  className="flex items-center gap-1 mb-6"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Menu Selection
+                </Button>
+              </div>
+              
               <div className="h-[500px] overflow-hidden rounded-lg">
                 <img 
                   src={menuItem.image_url || "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666"} 
