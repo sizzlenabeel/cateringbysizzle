@@ -7,8 +7,8 @@ import { QuantitySelector } from "./QuantitySelector";
 import { PriceSummary } from "./PriceSummary";
 import { SubProductList } from "./SubProductList";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "@/components/Button";
-import { ArrowLeft } from "@/components/Icons";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 interface MenuCustomizationContentProps {
   menuItem: MenuItemWithRelations;
