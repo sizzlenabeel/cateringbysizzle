@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +18,7 @@ import OrderHistory from "./pages/OrderHistory";
 import CompanySettings from "./pages/CompanySettings";
 import Admin from "./pages/Admin";
 import CompanyRegistration from "./pages/CompanyRegistration";
+import Checkout from "./pages/Checkout";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +39,7 @@ const App = () => (
               <Route path="/order" element={<OrderFlow />} />
               <Route path="/menu/:id" element={<MenuCustomization />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/order-history" element={<OrderHistory />} />
               <Route path="/company-settings" element={<CompanySettings />} />
