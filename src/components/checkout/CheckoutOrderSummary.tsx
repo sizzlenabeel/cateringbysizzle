@@ -23,6 +23,26 @@ export const CheckoutOrderSummary = () => {
     },
   });
 
+  // Fetch subproduct details for selected items
+  const { data: subProducts } = useQuery({
+    queryKey: ['subProducts', cartItems],
+    queryFn: async () => {
+      // Collect all subproduct IDs from cart items
+      const allSubProductIds = cartItems.flatMap(item => 
+        item.selectedSubProducts || []
+      );
+      
+      if (allSubProductIds.length === 0) return [];
+      
+      const { data } = await supabase
+        .from('sub_products')
+        .select('*')
+        .in('id', allSubProductIds);
+      return data || [];
+    },
+    enabled: cartItems.some(item => item.selectedSubProducts?.length > 0),
+  });
+
   const formatSEK = (amount: number) => {
     return new Intl.NumberFormat('sv-SE', {
       style: 'currency',
@@ -49,7 +69,7 @@ export const CheckoutOrderSummary = () => {
                       <p className="font-medium mb-1">Selected options:</p>
                       <ul className="list-disc pl-4">
                         {item.selectedSubProducts.map((subProductId) => {
-                          const subProduct = menuItem?.sub_products?.find(sp => sp.id === subProductId);
+                          const subProduct = subProducts?.find(sp => sp.id === subProductId);
                           return (
                             <li key={subProductId}>{subProduct?.name}</li>
                           );
