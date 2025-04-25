@@ -1,14 +1,27 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const CheckoutCustomerInfo = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Ordered By</CardTitle>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => navigate("/profile")}
+          className="flex items-center gap-2"
+        >
+          <Pencil className="h-4 w-4" />
+          Edit
+        </Button>
       </CardHeader>
       <CardContent className="space-y-2">
         <div>

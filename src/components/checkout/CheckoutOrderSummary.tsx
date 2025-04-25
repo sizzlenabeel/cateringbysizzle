@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,10 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useOrderAddresses } from "@/hooks/useOrderAddresses";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const CheckoutOrderSummary = () => {
   const { cartItems, subtotal, formatPrice } = useCart();
   const [allergyNotes, setAllergyNotes] = useState("");
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { company, selectedAddress } = useOrderAddresses(user?.id);
 
   // Fetch menu item details for the cart items
   const { data: menuItems } = useQuery({
@@ -48,6 +53,51 @@ export const CheckoutOrderSummary = () => {
       style: 'currency',
       currency: 'SEK'
     }).format(amount);
+  };
+
+  const validateCheckout = () => {
+    const errors = [];
+
+    // Validate customer info
+    if (!user?.user_metadata?.first_name || !user?.user_metadata?.last_name) {
+      errors.push("Please complete your name in profile settings");
+    }
+    if (!user?.user_metadata?.phone) {
+      errors.push("Please add your phone number in profile settings");
+    }
+
+    // Validate delivery info
+    if (!selectedAddress?.address) {
+      errors.push("Please select a delivery address in company settings");
+    }
+
+    // Validate invoice info
+    if (!company?.name || !company?.organization_number || !company?.billing_email) {
+      errors.push("Please complete company invoice details in company settings");
+    }
+
+    return errors;
+  };
+
+  const handlePlaceOrder = () => {
+    const validationErrors = validateCheckout();
+    
+    if (validationErrors.length > 0) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: (
+          <ul className="list-disc pl-4">
+            {validationErrors.map((error, index) => (
+              <li key={index}>{error}</li>
+            ))}
+          </ul>
+        ),
+      });
+      return;
+    }
+
+    // Proceed with order placement
   };
 
   return (
@@ -106,7 +156,10 @@ export const CheckoutOrderSummary = () => {
           </div>
         </div>
 
-        <Button className="w-full bg-orange-600 hover:bg-orange-500">
+        <Button 
+          className="w-full bg-orange-600 hover:bg-orange-500"
+          onClick={handlePlaceOrder}
+        >
           Place Order
         </Button>
       </CardContent>

@@ -1,19 +1,32 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useOrderAddresses } from "@/hooks/useOrderAddresses";
 import { useAuth } from "@/contexts/AuthContext";
+import { Pencil } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const CheckoutDeliveryInfo = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { selectedAddress } = useOrderAddresses(user?.id);
   const [deliveryNotes, setDeliveryNotes] = useState("");
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Delivery Details</CardTitle>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => navigate("/company-settings")}
+          className="flex items-center gap-2"
+        >
+          <Pencil className="h-4 w-4" />
+          Edit
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
