@@ -46,7 +46,9 @@ export const SubProductItem = ({
         </div>
       </div>
       <div className="flex items-center">
-        <span className="font-medium text-orange-600">{formatPrice(Number(subProduct.price))}</span>
+        <span className="font-medium text-orange-600">
+          {formatPrice(Number(subProduct.price)).replace('$', '') + ' kr'}
+        </span>
         {isSelected ? (
           <button 
             onClick={() => onToggle(subProduct.id)}
