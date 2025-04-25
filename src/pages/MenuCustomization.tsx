@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { useMenuCustomization } from "@/hooks/useMenuCustomization";
 import { LoadingState } from "@/components/menu-customization/LoadingState";
@@ -14,6 +14,11 @@ const MenuCustomization = () => {
     toggleSubProduct,
     setCustomizedMenu,
   } = useMenuCustomization();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   if (isLoading) {
     return (

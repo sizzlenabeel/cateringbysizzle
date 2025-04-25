@@ -43,36 +43,43 @@ export const MenuCustomizationContent = ({
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col space-y-6">
-        <MenuHeader
-          name={menuItem.name}
-          description={menuItem.description}
-          imageUrl={menuItem.image_url}
-          eventTypes={menuItem.event_types}
-          isVegan={menuItem.is_vegan}
-        />
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <QuantitySelector
-              quantity={customizedMenu.quantity}
-              minimumQuantity={minimumQuantity}
-              onUpdateQuantity={onUpdateQuantity}
-            />
-            <PriceSummary
-              totalPrice={customizedMenu.totalPrice}
-              quantity={customizedMenu.quantity}
-              formatPrice={formatPrice}
-              onAddToCart={handleAddToCart}
+          <div className="flex flex-col space-y-6">
+            <MenuHeader
+              name={menuItem.name}
+              description={menuItem.description}
+              imageUrl={menuItem.image_url}
+              eventTypes={menuItem.event_types}
+              isVegan={menuItem.is_vegan}
             />
           </div>
-
-          <div>
-            <SubProductList
-              subProducts={menuItem.sub_products}
-              selectedSubProducts={customizedMenu.selectedSubProducts}
-              onToggleSubProduct={onToggleSubProduct}
-              formatPrice={formatPrice}
-            />
+          
+          <div className="flex flex-col space-y-6">
+            <div className="md:block">
+              <QuantitySelector
+                quantity={customizedMenu.quantity}
+                minimumQuantity={minimumQuantity}
+                onUpdateQuantity={onUpdateQuantity}
+              />
+            </div>
+            
+            <div className="md:block">
+              <SubProductList
+                subProducts={menuItem.sub_products}
+                selectedSubProducts={customizedMenu.selectedSubProducts}
+                onToggleSubProduct={onToggleSubProduct}
+                formatPrice={formatPrice}
+              />
+            </div>
+            
+            <div className="md:block md:mt-4 sticky bottom-0 bg-white p-4 md:p-0 shadow-lg md:shadow-none z-10 md:z-0">
+              <PriceSummary
+                totalPrice={customizedMenu.totalPrice}
+                quantity={customizedMenu.quantity}
+                formatPrice={formatPrice}
+                onAddToCart={handleAddToCart}
+              />
+            </div>
           </div>
         </div>
       </div>
