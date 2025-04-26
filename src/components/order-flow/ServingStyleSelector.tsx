@@ -26,31 +26,25 @@ export const ServingStyleSelector = ({
   }
 
   return (
-    <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-0 shadow-xl">
+    <Card>
       <CardContent className="pt-6">
-        <h2 className="text-3xl font-semibold mb-8 text-white text-center">How would you like your food served?</h2>
+        <h2 className="text-2xl font-semibold mb-6">How would you like your food served?</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {servingStyles.map((style) => (
             <div
               key={style.id}
               onClick={() => onSelect(style.id)}
               className={`
-                relative group overflow-hidden rounded-xl transition-all duration-300 transform hover:scale-105
+                p-4 rounded-lg border-2 cursor-pointer transition-all
                 ${selectedServingStyleId === style.id 
-                  ? 'bg-gradient-to-r from-catering-secondary to-catering-accent border-0' 
-                  : 'bg-white/10 backdrop-blur-lg hover:bg-white/20'
+                  ? 'border-catering-secondary bg-purple-50' 
+                  : 'border-gray-200 hover:border-gray-300'
                 }
               `}
             >
-              <div className="p-6 text-center cursor-pointer">
-                <div className={`text-5xl mb-4 transition-transform duration-300 group-hover:scale-110 
-                  ${selectedServingStyleId === style.id ? 'text-white' : 'text-catering-secondary'}`}>
-                  {style.icon || '🍽️'}
-                </div>
-                <h3 className={`font-medium text-lg tracking-wide
-                  ${selectedServingStyleId === style.id ? 'text-white' : 'text-gray-100'}`}>
-                  {style.name}
-                </h3>
+              <div className="text-center">
+                <div className="text-4xl mb-2">{style.icon || '🍽️'}</div>
+                <h3 className="font-medium">{style.name}</h3>
               </div>
             </div>
           ))}
