@@ -6,22 +6,22 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const menuCategories = [{
-  title: "Breakfast",
+  title: "Jamaican power lunch",
   description: "Start the day right with our selection of breakfast options, from continental spreads to hot breakfast buffets.",
   image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
   popular: true
 }, {
-  title: "Lunch Packages",
+  title: "The hong kong breakfast",
   description: "Impressive lunch solutions perfect for business meetings, from boxed lunches to buffet-style service.",
   image: "https://images.unsplash.com/photo-1546793665-c74683f339c1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
   popular: false
 }, {
-  title: "Executive Platters",
+  title: "Filipino mingle",
   description: "Upscale catering options designed to impress at board meetings, client presentations, and VIP events.",
   image: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
   popular: true
 }, {
-  title: "Refreshment Breaks",
+  title: "Asian dinner buffet",
   description: "Keep your team energized with our selection of snacks, beverages, and refreshments for meeting breaks.",
   image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
   popular: false
