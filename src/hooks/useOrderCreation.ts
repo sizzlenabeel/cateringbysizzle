@@ -118,16 +118,13 @@ export const useOrderCreation = () => {
     const validationErrors = validateOrder();
     
     if (validationErrors.length > 0) {
+      // Creating the error message as a string instead of JSX
+      const errorMessages = validationErrors.map(error => error.message).join('\n• ');
+      
       toast({
         variant: "destructive",
         title: "Missing Information",
-        description: (
-          <ul className="list-disc pl-4">
-            {validationErrors.map((error, index) => (
-              <li key={index}>{error.message}</li>
-            ))}
-          </ul>
-        ),
+        description: `• ${errorMessages}`,
       });
       return;
     }

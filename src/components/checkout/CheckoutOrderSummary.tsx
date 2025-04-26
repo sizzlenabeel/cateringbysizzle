@@ -11,6 +11,8 @@ import { OrderNotes } from './OrderNotes';
 import { OrderCostBreakdown } from './OrderCostBreakdown';
 import { DiscountCodeInput } from './DiscountCodeInput';
 import { useOrderCreation } from "@/hooks/useOrderCreation";
+import { useToast } from "@/hooks/use-toast";
+import { calculateOrderTaxes } from "@/utils/TaxUtils";
 
 export const CheckoutOrderSummary = () => {
   const { cartItems, subtotal, formatPrice, removeItem } = useCart();
@@ -19,6 +21,7 @@ export const CheckoutOrderSummary = () => {
   const { user } = useAuth();
   const { company, selectedAddress } = useOrderAddresses(user?.id);
   const { createOrder, isSubmitting } = useOrderCreation();
+  const { toast } = useToast();
 
   const {
     discountCode,
