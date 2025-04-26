@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Company as DatabaseCompany } from "@/types/supabase";
 
 export type Address = {
   id: string;
@@ -8,13 +9,8 @@ export type Address = {
   address: string;
 };
 
-export type Company = {
-  id: string;
-  address: string;
-  name: string;
-  organization_number: string;
-  billing_email?: string;
-};
+// Use the database-generated type rather than creating our own
+export type Company = DatabaseCompany;
 
 export const useOrderAddresses = (userId: string | undefined) => {
   const [company, setCompany] = useState<Company | null>(null);

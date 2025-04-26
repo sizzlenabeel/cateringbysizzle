@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -207,10 +208,13 @@ export const CheckoutOrderSummary = () => {
     clearDiscount
   } = useDiscountCode();
 
+  // Safely access company.discount_percentage with a default value of 0
+  const companyDiscountPercentage = company?.discount_percentage ?? 0;
+
   const taxBreakdown = calculateOrderTaxes(
     subtotal,
     discountInfo,
-    company?.discount_percentage || 0
+    companyDiscountPercentage
   );
 
   return (
@@ -315,12 +319,13 @@ export const CheckoutOrderSummary = () => {
             <span>{formatSEK(taxBreakdown.deliveryFeeTaxAmount)}</span>
           </div>
 
-          {company?.discount_percentage ? (
+          {/* Safely handle company discount percentage display */}
+          {companyDiscountPercentage > 0 && (
             <div className="flex justify-between text-sm text-green-600">
-              <span>Company Discount ({company.discount_percentage}%)</span>
+              <span>Company Discount ({companyDiscountPercentage}%)</span>
               <span>-{formatSEK((taxBreakdown.adminFeeDiscount + taxBreakdown.deliveryFeeDiscount))}</span>
             </div>
-          ) : null}
+          )}
 
           {discountInfo && (
             <div className="flex justify-between text-sm text-green-600">
