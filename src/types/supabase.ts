@@ -1,4 +1,3 @@
-
 import { Database } from "@/integrations/supabase/types";
 
 // Convenience types for database tables
@@ -73,5 +72,5 @@ export interface Company {
   address: string;
   organization_number: string;
   billing_email?: string;
-  discount_percentage?: number;
+  discount_percentage?: number | null;
 }

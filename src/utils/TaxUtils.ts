@@ -1,4 +1,3 @@
-
 export const TAX_RATES = {
   PRODUCT_TAX: 0.12, // 12% VAT on food products
   SERVICE_TAX: 0.25, // 25% VAT on services (admin fee and delivery)
@@ -45,10 +44,11 @@ export const calculateOrderTaxes = (
   };
 
   // First check for company-wide discount
-  if (companyDiscountPercentage > 0) {
+  const companyDiscount = companyDiscountPercentage || 0;
+  if (companyDiscount > 0) {
     // Company discount applies to everything by default
-    adminFeeDiscount = applyDiscount(adminFeeAmount, companyDiscountPercentage);
-    deliveryFeeDiscount = applyDiscount(deliveryFeeAmount, companyDiscountPercentage);
+    adminFeeDiscount = applyDiscount(adminFeeAmount, companyDiscount);
+    deliveryFeeDiscount = applyDiscount(deliveryFeeAmount, companyDiscount);
   }
 
   // Then check for specific discount code which might override company discount if higher
