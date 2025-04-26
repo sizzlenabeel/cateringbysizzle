@@ -1,3 +1,4 @@
+
 import { Database } from "@/integrations/supabase/types";
 
 // Convenience types for database tables
@@ -65,12 +66,6 @@ export interface OrderItem {
   updated_at: string;
 }
 
-// Update the Company type to include discount_percentage
-export interface Company {
-  id: string;
-  name: string;
-  address: string;
-  organization_number: string;
-  billing_email?: string;
-  discount_percentage?: number | null;
-}
+// Update the Company type to use the database-generated type directly
+export type Company = Database["public"]["Tables"]["companies"]["Row"];
+
