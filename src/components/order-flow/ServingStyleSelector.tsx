@@ -2,8 +2,6 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ServingStyle } from "@/types/supabase";
 
 interface ServingStyleSelectorProps {
@@ -31,18 +29,26 @@ export const ServingStyleSelector = ({
     <Card>
       <CardContent className="pt-6">
         <h2 className="text-2xl font-semibold mb-6">How would you like your food served?</h2>
-        <RadioGroup 
-          value={selectedServingStyleId} 
-          onValueChange={onSelect}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        >
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {servingStyles.map((style) => (
-            <div key={style.id} className="flex items-center space-x-2">
-              <RadioGroupItem value={style.id} id={style.id} />
-              <Label htmlFor={style.id} className="text-base cursor-pointer">{style.name}</Label>
+            <div
+              key={style.id}
+              onClick={() => onSelect(style.id)}
+              className={`
+                p-4 rounded-lg border-2 cursor-pointer transition-all
+                ${selectedServingStyleId === style.id 
+                  ? 'border-catering-secondary bg-purple-50' 
+                  : 'border-gray-200 hover:border-gray-300'
+                }
+              `}
+            >
+              <div className="text-center">
+                <div className="text-4xl mb-2">{style.icon}</div>
+                <h3 className="font-medium">{style.name}</h3>
+              </div>
             </div>
           ))}
-        </RadioGroup>
+        </div>
       </CardContent>
     </Card>
   );

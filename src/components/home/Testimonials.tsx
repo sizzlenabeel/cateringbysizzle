@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+
 const testimonials = [{
   content: "Sizzle has been our go-to catering service for the past year. Their attention to detail, quality of food, and professional service make them stand out. Our clients are always impressed.",
   author: "Sarah Johnson",
@@ -29,7 +30,7 @@ const Testimonials = () => {
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
-          {testimonials.map((testimonial, index) => <Card key={index} className="border-t-4 border-catering-secondary">
+          {testimonials.map((testimonial, index) => <Card key={index} className="border-t-4 border-orange-600">
               <CardContent className="pt-6">
                 <div className="relative">
                   <svg className="absolute top-0 left-0 transform -translate-x-6 -translate-y-8 h-16 w-16 text-gray-100" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
@@ -47,4 +48,5 @@ const Testimonials = () => {
       </div>
     </section>;
 };
+
 export default Testimonials;

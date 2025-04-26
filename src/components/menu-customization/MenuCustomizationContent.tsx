@@ -48,8 +48,8 @@ export const MenuCustomizationContent = ({
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col space-y-6">
         {isMobile ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-32">
+            <div className="flex flex-col space-y-6 overflow-y-auto">
               <MenuHeader
                 name={menuItem.name}
                 description={menuItem.description}
@@ -57,36 +57,30 @@ export const MenuCustomizationContent = ({
                 eventTypes={menuItem.event_types}
                 isVegan={menuItem.is_vegan}
               />
-            </div>
-            
-            <div className="flex flex-col space-y-6 relative">
-              <div className="md:block">
-                <SubProductList
-                  subProducts={menuItem.sub_products}
-                  selectedSubProducts={customizedMenu.selectedSubProducts}
-                  onToggleSubProduct={onToggleSubProduct}
-                  formatPrice={formatPrice}
-                />
-              </div>
               
-              <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg z-50">
-                <div className="container mx-auto">
-                  <PriceSummary
-                    totalPrice={customizedMenu.totalPrice}
-                    quantity={customizedMenu.quantity}
-                    formatPrice={formatPrice}
-                    onAddToCart={handleAddToCart}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="pb-32">
               <QuantitySelector
                 quantity={customizedMenu.quantity}
                 minimumQuantity={minimumQuantity}
                 onUpdateQuantity={onUpdateQuantity}
               />
+              
+              <SubProductList
+                subProducts={menuItem.sub_products}
+                selectedSubProducts={customizedMenu.selectedSubProducts}
+                onToggleSubProduct={onToggleSubProduct}
+                formatPrice={formatPrice}
+              />
+            </div>
+            
+            <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg z-50">
+              <div className="container mx-auto">
+                <PriceSummary
+                  totalPrice={customizedMenu.totalPrice}
+                  quantity={customizedMenu.quantity}
+                  formatPrice={formatPrice}
+                  onAddToCart={handleAddToCart}
+                />
+              </div>
             </div>
           </div>
         ) : (
