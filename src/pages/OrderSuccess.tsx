@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, ShoppingBag } from "lucide-react";
 
-// Define an extended interface for the Order type that includes our new fields
+// Define an extended interface for the Order type that includes our fields
 interface ExtendedOrder {
   id: string;
   reference?: string;
@@ -66,9 +66,13 @@ const OrderSuccess = () => {
         .eq('id', orderId)
         .single();
 
-      if (error) throw error;
-      return data as ExtendedOrder; // Cast to our extended type
+      if (error) {
+        console.error("Error fetching order:", error);
+        throw error;
+      }
+      return data as ExtendedOrder;
     },
+    enabled: !!orderId && !!user,
   });
 
   if (isLoading) {
@@ -90,6 +94,14 @@ const OrderSuccess = () => {
       </Layout>
     );
   }
+
+  // Format currency to SEK
+  const formatSEK = (amount: number) => {
+    return new Intl.NumberFormat('sv-SE', {
+      style: 'currency',
+      currency: 'SEK'
+    }).format(amount);
+  };
 
   return (
     <Layout>
@@ -139,14 +151,14 @@ const OrderSuccess = () => {
                 <div>
                   <h3 className="font-semibold mb-2">Order Summary</h3>
                   <div className="space-y-4">
-                    {order.order_items.map((item: any) => (
+                    {order.order_items.map((item) => (
                       <div key={item.id} className="flex justify-between border-b pb-4">
                         <div>
                           <p className="font-medium">{item.menu_id.name}</p>
                           <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                         </div>
                         <p className="font-medium">
-                          ${item.total_price}
+                          {formatSEK(item.total_price)}
                         </p>
                       </div>
                     ))}
@@ -155,17 +167,17 @@ const OrderSuccess = () => {
                   <div className="mt-4 space-y-2">
                     <div className="flex justify-between">
                       <span>Subtotal</span>
-                      <span>${order.total_amount}</span>
+                      <span>{formatSEK(order.total_amount)}</span>
                     </div>
                     {order.discount_amount > 0 && (
                       <div className="flex justify-between text-green-600">
                         <span>Discount</span>
-                        <span>-${order.discount_amount}</span>
+                        <span>-{formatSEK(order.discount_amount)}</span>
                       </div>
                     )}
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total</span>
-                      <span>${order.total_amount - order.discount_amount}</span>
+                      <span>{formatSEK(order.total_amount - order.discount_amount)}</span>
                     </div>
                   </div>
                 </div>

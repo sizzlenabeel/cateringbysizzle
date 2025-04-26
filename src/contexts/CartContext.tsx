@@ -102,9 +102,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice * item.quantity, 0);
 
-  // Helper function to format prices
+  // Helper function to format prices in SEK
   const formatPrice = (price: number): string => {
-    return `$${price.toFixed(2)}`;
+    return new Intl.NumberFormat('sv-SE', {
+      style: 'currency',
+      currency: 'SEK'
+    }).format(price);
   };
 
   return (

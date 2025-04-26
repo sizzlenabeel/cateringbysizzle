@@ -19,6 +19,7 @@ export const CheckoutOrderSummary = () => {
   const { user } = useAuth();
   const { company, selectedAddress } = useOrderAddresses(user?.id);
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: menuItems } = useQuery({
     queryKey: ['menuItems', cartItems.map(item => item.menuId)],
@@ -29,6 +30,7 @@ export const CheckoutOrderSummary = () => {
         .in('id', cartItems.map(item => item.menuId));
       return data || [];
     },
+    enabled: cartItems.length > 0,
   });
 
   const { data: subProducts } = useQuery({
@@ -79,6 +81,7 @@ export const CheckoutOrderSummary = () => {
 
   const createOrderMutation = useMutation({
     mutationFn: async () => {
+      // Create the order
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -94,8 +97,18 @@ export const CheckoutOrderSummary = () => {
         .select()
         .single();
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error("Order creation error:", orderError);
+        throw orderError;
+      }
+      
+      if (!order) {
+        throw new Error("Failed to create order - no order data returned");
+      }
 
+      console.log("Order created successfully:", order);
+
+      // Create order items
       const orderItems = cartItems.map(item => ({
         order_id: order.id,
         menu_id: item.menuId,
@@ -108,26 +121,42 @@ export const CheckoutOrderSummary = () => {
         .from('order_items')
         .insert(orderItems);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error("Order items creation error:", itemsError);
+        throw itemsError;
+      }
 
+      console.log("Order items created successfully");
       return order;
     },
     onSuccess: (order) => {
-      // Use the removeItem from cartContext to clear cart items
-      cartItems.forEach(item => removeItem(item.id));
-      navigate(`/order-success/${order.id}`);
+      console.log("Order complete, clearing cart and redirecting...");
+      
+      // Clear cart by removing each item
+      Promise.all(cartItems.map(item => removeItem(item.id)))
+        .then(() => {
+          navigate(`/order-success/${order.id}`);
+        })
+        .catch(error => {
+          console.error("Error clearing cart:", error);
+          // Still redirect even if cart clearing fails
+          navigate(`/order-success/${order.id}`);
+        });
     },
     onError: (error) => {
+      console.error('Order creation error:', error);
       toast({
         variant: "destructive",
         title: "Error creating order",
         description: "There was a problem creating your order. Please try again.",
       });
-      console.error('Order creation error:', error);
+      setIsSubmitting(false);
     },
   });
 
   const handlePlaceOrder = () => {
+    if (isSubmitting) return;
+    
     const validationErrors = validateCheckout();
     
     if (validationErrors.length > 0) {
@@ -145,6 +174,7 @@ export const CheckoutOrderSummary = () => {
       return;
     }
 
+    setIsSubmitting(true);
     createOrderMutation.mutate();
   };
 
@@ -220,8 +250,9 @@ export const CheckoutOrderSummary = () => {
         <Button 
           className="w-full bg-orange-600 hover:bg-orange-500"
           onClick={handlePlaceOrder}
+          disabled={isSubmitting}
         >
-          Place Order
+          {isSubmitting ? "Processing..." : "Place Order"}
         </Button>
       </CardContent>
     </Card>

@@ -1,8 +1,9 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
@@ -20,8 +21,20 @@ import Admin from "./pages/Admin";
 import CompanyRegistration from "./pages/CompanyRegistration";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
+import { useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
+
+// Protected route component to redirect to order page if authenticated
+const HomeRedirect = () => {
+  const { user, loading } = useAuth();
+  
+  // Show nothing while authentication is being checked
+  if (loading) return null;
+  
+  // If user is logged in, redirect to order page, otherwise show Index page
+  return user ? <Navigate to="/order" replace /> : <Index />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -32,7 +45,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<HomeRedirect />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/company-registration" element={<CompanyRegistration />} />
