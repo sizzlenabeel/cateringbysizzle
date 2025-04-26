@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +22,6 @@ export const CheckoutOrderSummary = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Import selectedAddress from useOrderAddresses hook
   const { company, selectedAddress } = useOrderAddresses(user?.id);
 
   const { data: menuItems } = useQuery({
@@ -86,7 +84,6 @@ export const CheckoutOrderSummary = () => {
 
   const createOrderMutation = useMutation({
     mutationFn: async (payload: any) => {
-      // Create the order
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -121,7 +118,6 @@ export const CheckoutOrderSummary = () => {
 
       console.log("Order created successfully:", order);
 
-      // Create order items
       const orderItems = cartItems.map(item => ({
         order_id: order.id,
         menu_id: item.menuId,
@@ -145,14 +141,12 @@ export const CheckoutOrderSummary = () => {
     onSuccess: (order) => {
       console.log("Order complete, clearing cart and redirecting...");
       
-      // Clear cart by removing each item
       Promise.all(cartItems.map(item => removeItem(item.id)))
         .then(() => {
           navigate(`/order-success/${order.id}`);
         })
         .catch(error => {
           console.error("Error clearing cart:", error);
-          // Still redirect even if cart clearing fails
           navigate(`/order-success/${order.id}`);
         });
     },
@@ -321,12 +315,12 @@ export const CheckoutOrderSummary = () => {
             <span>{formatSEK(taxBreakdown.deliveryFeeTaxAmount)}</span>
           </div>
 
-          {company?.discount_percentage > 0 && (
+          {company?.discount_percentage ? (
             <div className="flex justify-between text-sm text-green-600">
               <span>Company Discount ({company.discount_percentage}%)</span>
               <span>-{formatSEK((taxBreakdown.adminFeeDiscount + taxBreakdown.deliveryFeeDiscount))}</span>
             </div>
-          )}
+          ) : null}
 
           {discountInfo && (
             <div className="flex justify-between text-sm text-green-600">
