@@ -3,17 +3,21 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 
 // Type for data objects with an optional id
 type WithOptionalId = {
   id?: string;
 };
 
+// Define allowed table names based on Supabase database schema
+type TableName = keyof Database["public"]["Tables"];
+
 export function useCrudMutation<TData extends WithOptionalId>({
   tableName,
   queryKey,
 }: {
-  tableName: string;
+  tableName: TableName;
   queryKey: string[];
 }) {
   const { toast } = useToast();
@@ -30,21 +34,21 @@ export function useCrudMutation<TData extends WithOptionalId>({
         const { id, ...updateData } = item;
         const { data, error } = await supabase
           .from(tableName)
-          .update(updateData)
+          .update(updateData as any)
           .eq('id', id)
           .select();
           
         if (error) throw error;
-        return data[0] as TData;
+        return data[0] as unknown as TData;
       } else {
         // Create new item
         const { data, error } = await supabase
           .from(tableName)
-          .insert(item)
+          .insert(item as any)
           .select();
           
         if (error) throw error;
-        return data[0] as TData;
+        return data[0] as unknown as TData;
       }
     },
     onSuccess: () => {
