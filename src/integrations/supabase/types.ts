@@ -431,7 +431,9 @@ export type Database = {
       }
       orders: {
         Row: {
+          allergy_notes: string | null
           created_at: string
+          delivery_notes: string | null
           discount_amount: number
           discount_code: string | null
           id: string
@@ -446,7 +448,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          allergy_notes?: string | null
           created_at?: string
+          delivery_notes?: string | null
           discount_amount?: number
           discount_code?: string | null
           id?: string
@@ -461,7 +465,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          allergy_notes?: string | null
           created_at?: string
+          delivery_notes?: string | null
           discount_amount?: number
           discount_code?: string | null
           id?: string

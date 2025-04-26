@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -60,12 +59,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
     onError: (error) => {
+      console.error("Error in add item mutation:", error);
       toast({
         title: "Error",
         description: "Failed to add item to cart",
         variant: "destructive"
       });
-      console.error("Error in add item mutation:", error);
     },
   });
 
@@ -76,12 +75,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
     onError: (error) => {
+      console.error("Error in update quantity mutation:", error);
       toast({
         title: "Error",
         description: "Failed to update item quantity",
         variant: "destructive"
       });
-      console.error("Error in update quantity mutation:", error);
     },
   });
 
@@ -91,12 +90,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
     onError: (error) => {
+      console.error("Error in remove item mutation:", error);
       toast({
         title: "Error",
         description: "Failed to remove item",
         variant: "destructive"
       });
-      console.error("Error in remove item mutation:", error);
     },
   });
 
@@ -118,13 +117,28 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         subtotal,
         formatPrice,
         addItemToCart: async (item) => {
-          await addItemMutation.mutateAsync(item);
+          try {
+            await addItemMutation.mutateAsync(item);
+          } catch (error) {
+            console.error("Error adding item to cart:", error);
+            throw error;
+          }
         },
         updateQuantity: async (itemId, quantity) => {
-          await updateQuantityMutation.mutateAsync({ itemId, quantity });
+          try {
+            await updateQuantityMutation.mutateAsync({ itemId, quantity });
+          } catch (error) {
+            console.error("Error updating quantity:", error);
+            throw error;
+          }
         },
         removeItem: async (itemId) => {
-          await removeItemMutation.mutateAsync(itemId);
+          try {
+            await removeItemMutation.mutateAsync(itemId);
+          } catch (error) {
+            console.error("Error removing item:", error);
+            throw error;
+          }
         },
       }}
     >

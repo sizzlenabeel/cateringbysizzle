@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, ShoppingBag } from "lucide-react";
 
-// Define an extended interface for the Order type that includes our fields
 interface ExtendedOrder {
   id: string;
   reference?: string;
@@ -95,7 +93,6 @@ const OrderSuccess = () => {
     );
   }
 
-  // Format currency to SEK
   const formatSEK = (amount: number) => {
     return new Intl.NumberFormat('sv-SE', {
       style: 'currency',
