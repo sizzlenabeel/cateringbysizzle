@@ -50,6 +50,39 @@ export type Database = {
           },
         ]
       }
+      chefs: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          specialties: string[] | null
+          updated_at: string
+          years_of_experience: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          specialties?: string[] | null
+          updated_at?: string
+          years_of_experience?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          specialties?: string[] | null
+          updated_at?: string
+          years_of_experience?: number | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           address: string
