@@ -1,10 +1,8 @@
-
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useOrderAddresses } from "@/hooks/useOrderAddresses";
@@ -13,6 +11,9 @@ import { useNavigate } from "react-router-dom";
 import { calculateOrderTaxes } from "@/utils/TaxUtils";
 import { useDiscountCode } from '@/hooks/useDiscountCode';
 import { DiscountCodeInput } from './DiscountCodeInput';
+import { OrderItemsList } from './OrderItemsList';
+import { OrderNotes } from './OrderNotes';
+import { OrderCostBreakdown } from './OrderCostBreakdown';
 
 export const CheckoutOrderSummary = () => {
   const { cartItems, subtotal, formatPrice, removeItem } = useCart();
@@ -25,42 +26,21 @@ export const CheckoutOrderSummary = () => {
   
   const { company, selectedAddress } = useOrderAddresses(user?.id);
 
-  const { data: menuItems } = useQuery({
-    queryKey: ['menuItems', cartItems.map(item => item.menuId)],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('menu_items')
-        .select('*')
-        .in('id', cartItems.map(item => item.menuId));
-      return data || [];
-    },
-    enabled: cartItems.length > 0,
-  });
+  const {
+    discountCode,
+    discountInfo,
+    isValidating,
+    validateDiscountCode,
+    clearDiscount
+  } = useDiscountCode();
 
-  const { data: subProducts } = useQuery({
-    queryKey: ['subProducts', cartItems],
-    queryFn: async () => {
-      const allSubProductIds = cartItems.flatMap(item => 
-        item.selectedSubProducts || []
-      );
-      
-      if (allSubProductIds.length === 0) return [];
-      
-      const { data } = await supabase
-        .from('sub_products')
-        .select('*')
-        .in('id', allSubProductIds);
-      return data || [];
-    },
-    enabled: cartItems.some(item => item.selectedSubProducts?.length > 0),
-  });
+  const companyDiscountPercentage = company?.discount_percentage ?? 0;
 
-  const formatSEK = (amount: number) => {
-    return new Intl.NumberFormat('sv-SE', {
-      style: 'currency',
-      currency: 'SEK'
-    }).format(amount);
-  };
+  const taxBreakdown = calculateOrderTaxes(
+    subtotal,
+    discountInfo,
+    companyDiscountPercentage
+  );
 
   const validateCheckout = () => {
     const errors = [];
@@ -200,58 +180,16 @@ export const CheckoutOrderSummary = () => {
     });
   };
 
-  const {
-    discountCode,
-    discountInfo,
-    isValidating,
-    validateDiscountCode,
-    clearDiscount
-  } = useDiscountCode();
-
-  // Safely access company.discount_percentage with a default value of 0
-  const companyDiscountPercentage = company?.discount_percentage ?? 0;
-
-  const taxBreakdown = calculateOrderTaxes(
-    subtotal,
-    discountInfo,
-    companyDiscountPercentage
-  );
-
   return (
     <Card className="sticky top-20">
       <CardHeader>
         <CardTitle>Order Summary</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-4">
-          {cartItems.map((item) => {
-            const menuItem = menuItems?.find(mi => mi.id === item.menuId);
-            return (
-              <div key={item.id} className="flex justify-between items-start border-b pb-4">
-                <div className="space-y-1">
-                  <div className="font-medium">{menuItem?.name}</div>
-                  <div className="text-sm text-gray-600">Quantity: {item.quantity}</div>
-                  {item.selectedSubProducts && item.selectedSubProducts.length > 0 && (
-                    <div className="text-sm text-gray-500">
-                      <p className="font-medium mb-1">Selected options:</p>
-                      <ul className="list-disc pl-4">
-                        {item.selectedSubProducts.map((subProductId) => {
-                          const subProduct = subProducts?.find(sp => sp.id === subProductId);
-                          return (
-                            <li key={subProductId}>{subProduct?.name}</li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-                <div className="font-medium">
-                  {formatSEK(item.totalPrice * item.quantity)}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <OrderItemsList 
+          cartItems={cartItems}
+          formatPrice={formatPrice}
+        />
 
         <div className="pt-4">
           <DiscountCodeInput
@@ -262,83 +200,19 @@ export const CheckoutOrderSummary = () => {
           />
         </div>
 
-        <div className="pt-4">
-          <label htmlFor="allergyNotes" className="block text-sm font-medium text-gray-700 mb-2">
-            Allergy Information
-          </label>
-          <Textarea
-            id="allergyNotes"
-            placeholder="Please list any allergies or dietary restrictions..."
-            value={allergyNotes}
-            onChange={(e) => setAllergyNotes(e.target.value)}
-            className="mb-4"
-          />
-        </div>
+        <OrderNotes
+          allergyNotes={allergyNotes}
+          deliveryNotes={deliveryNotes}
+          onAllergyNotesChange={setAllergyNotes}
+          onDeliveryNotesChange={setDeliveryNotes}
+        />
 
-        <div className="pt-4">
-          <label htmlFor="deliveryNotes" className="block text-sm font-medium text-gray-700 mb-2">
-            Delivery Notes
-          </label>
-          <Textarea
-            id="deliveryNotes"
-            placeholder="Please add any delivery notes..."
-            value={deliveryNotes}
-            onChange={(e) => setDeliveryNotes(e.target.value)}
-            className="mb-4"
-          />
-        </div>
-
-        <div className="border-t pt-4 space-y-2">
-          <div className="flex justify-between">
-            <span>Subtotal (excl. VAT)</span>
-            <span>{formatSEK(taxBreakdown.subtotalPreTax)}</span>
-          </div>
-        
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>VAT (12%)</span>
-            <span>{formatSEK(taxBreakdown.productTaxAmount)}</span>
-          </div>
-
-          <div className="flex justify-between">
-            <span>Administrative fee (5%)</span>
-            <span>{formatSEK(taxBreakdown.adminFeeAmount)}</span>
-          </div>
-
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Administrative fee VAT (25%)</span>
-            <span>{formatSEK(taxBreakdown.adminFeeTaxAmount)}</span>
-          </div>
-
-          <div className="flex justify-between">
-            <span>Delivery fee</span>
-            <span>{formatSEK(taxBreakdown.deliveryFeeAmount)}</span>
-          </div>
-
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Delivery fee VAT (25%)</span>
-            <span>{formatSEK(taxBreakdown.deliveryFeeTaxAmount)}</span>
-          </div>
-
-          {/* Safely handle company discount percentage display */}
-          {companyDiscountPercentage > 0 && (
-            <div className="flex justify-between text-sm text-green-600">
-              <span>Company Discount ({companyDiscountPercentage}%)</span>
-              <span>-{formatSEK((taxBreakdown.adminFeeDiscount + taxBreakdown.deliveryFeeDiscount))}</span>
-            </div>
-          )}
-
-          {discountInfo && (
-            <div className="flex justify-between text-sm text-green-600">
-              <span>Discount Code ({discountInfo.percentage}%)</span>
-              <span>Applied to: {discountInfo.applies_to?.join(', ')}</span>
-            </div>
-          )}
-
-          <div className="border-t pt-2 flex justify-between font-bold">
-            <span>Total</span>
-            <span>{formatSEK(taxBreakdown.totalAmount)}</span>
-          </div>
-        </div>
+        <OrderCostBreakdown
+          taxBreakdown={taxBreakdown}
+          formatPrice={formatPrice}
+          companyDiscountPercentage={companyDiscountPercentage}
+          discountInfo={discountInfo}
+        />
 
         <Button 
           className="w-full bg-orange-600 hover:bg-orange-500"
