@@ -96,7 +96,6 @@ export const CheckoutOrderSummary = () => {
 
       if (orderError) throw orderError;
 
-      // Create order items
       const orderItems = cartItems.map(item => ({
         order_id: order.id,
         menu_id: item.menuId,
@@ -114,9 +113,8 @@ export const CheckoutOrderSummary = () => {
       return order;
     },
     onSuccess: (order) => {
-      // Clear cart items one by one
+      // Use the removeItem from cartContext to clear cart items
       cartItems.forEach(item => removeItem(item.id));
-      // Navigate to success page
       navigate(`/order-success/${order.id}`);
     },
     onError: (error) => {

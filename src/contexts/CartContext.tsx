@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -103,10 +104,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Helper function to format prices
   const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('sv-SE', {
-      style: 'currency',
-      currency: 'SEK'
-    }).format(price);
+    return `$${price.toFixed(2)}`;
   };
 
   return (
