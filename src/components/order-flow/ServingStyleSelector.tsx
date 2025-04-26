@@ -43,7 +43,7 @@ export const ServingStyleSelector = ({
               `}
             >
               <div className="text-center">
-                <div className="text-4xl mb-2">{style.icon}</div>
+                <div className="text-4xl mb-2">{style.icon || '🍽️'}</div>
                 <h3 className="font-medium">{style.name}</h3>
               </div>
             </div>

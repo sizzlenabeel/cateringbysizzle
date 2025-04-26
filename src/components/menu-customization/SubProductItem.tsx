@@ -7,7 +7,7 @@ import { SubProduct } from "@/types/supabase";
 interface SubProductItemProps {
   subProduct: SubProduct;
   isSelected: boolean;
-  onToggle: () => void;
+  onToggle: (id: string) => void;
   formatPrice: (price: number) => string;
 }
 
@@ -20,7 +20,7 @@ export const SubProductItem = ({
   return (
     <Card className={`p-4 cursor-pointer transition-all ${
       isSelected ? "border-catering-secondary bg-purple-50" : ""
-    }`} onClick={onToggle}>
+    }`} onClick={() => onToggle(subProduct.id)}>
       <div className="flex items-start gap-3">
         <Checkbox checked={isSelected} />
         <div className="flex-1">
