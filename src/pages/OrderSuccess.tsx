@@ -9,6 +9,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, ShoppingBag } from "lucide-react";
 
+// Define an extended interface for the Order type that includes our new fields
+interface ExtendedOrder {
+  id: string;
+  reference?: string;
+  status: string;
+  total_amount: number;
+  discount_amount: number;
+  discount_code?: string;
+  shipping_name: string;
+  shipping_email: string;
+  shipping_phone: string;
+  shipping_address: string;
+  delivery_notes?: string;
+  allergy_notes?: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  order_items: {
+    id: string;
+    quantity: number;
+    total_price: number;
+    menu_id: {
+      name: string;
+      description?: string;
+    };
+  }[];
+}
+
 const OrderSuccess = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -39,7 +67,7 @@ const OrderSuccess = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as ExtendedOrder; // Cast to our extended type
     },
   });
 

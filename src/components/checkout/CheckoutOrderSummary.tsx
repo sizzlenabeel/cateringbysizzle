@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export const CheckoutOrderSummary = () => {
-  const { cartItems, subtotal, formatPrice } = useCart();
+  const { cartItems, subtotal, formatPrice, removeItem } = useCart();
   const [allergyNotes, setAllergyNotes] = useState("");
   const [deliveryNotes, setDeliveryNotes] = useState("");
   const { toast } = useToast();
@@ -112,6 +113,7 @@ export const CheckoutOrderSummary = () => {
       return order;
     },
     onSuccess: (order) => {
+      // Use the removeItem from cartContext to clear cart items
       cartItems.forEach(item => removeItem(item.id));
       navigate(`/order-success/${order.id}`);
     },
