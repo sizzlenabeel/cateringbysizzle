@@ -3,20 +3,22 @@ import { useCart } from "@/contexts/CartContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useOrderAddresses } from "@/hooks/useOrderAddresses";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export const CheckoutOrderSummary = () => {
   const { cartItems, subtotal, formatPrice } = useCart();
   const [allergyNotes, setAllergyNotes] = useState("");
+  const [deliveryNotes, setDeliveryNotes] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
   const { company, selectedAddress } = useOrderAddresses(user?.id);
+  const navigate = useNavigate();
 
-  // Fetch menu item details for the cart items
   const { data: menuItems } = useQuery({
     queryKey: ['menuItems', cartItems.map(item => item.menuId)],
     queryFn: async () => {
@@ -28,11 +30,9 @@ export const CheckoutOrderSummary = () => {
     },
   });
 
-  // Fetch subproduct details for selected items
   const { data: subProducts } = useQuery({
     queryKey: ['subProducts', cartItems],
     queryFn: async () => {
-      // Collect all subproduct IDs from cart items
       const allSubProductIds = cartItems.flatMap(item => 
         item.selectedSubProducts || []
       );
@@ -58,7 +58,6 @@ export const CheckoutOrderSummary = () => {
   const validateCheckout = () => {
     const errors = [];
 
-    // Validate customer info
     if (!user?.user_metadata?.first_name || !user?.user_metadata?.last_name) {
       errors.push("Please complete your name in profile settings");
     }
@@ -66,18 +65,65 @@ export const CheckoutOrderSummary = () => {
       errors.push("Please add your phone number in profile settings");
     }
 
-    // Validate delivery info
     if (!selectedAddress?.address) {
       errors.push("Please select a delivery address in company settings");
     }
 
-    // Validate invoice info
     if (!company?.name || !company?.organization_number || !company?.billing_email) {
       errors.push("Please complete company invoice details in company settings");
     }
 
     return errors;
   };
+
+  const createOrderMutation = useMutation({
+    mutationFn: async () => {
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user?.id,
+          total_amount: subtotal,
+          shipping_name: `${user?.user_metadata?.first_name} ${user?.user_metadata?.last_name}`,
+          shipping_email: user?.email,
+          shipping_phone: user?.user_metadata?.phone,
+          shipping_address: selectedAddress?.address,
+          delivery_notes: deliveryNotes,
+          allergy_notes: allergyNotes,
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      const orderItems = cartItems.map(item => ({
+        order_id: order.id,
+        menu_id: item.menuId,
+        quantity: item.quantity,
+        selected_sub_products: item.selectedSubProducts,
+        total_price: item.totalPrice,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      return order;
+    },
+    onSuccess: (order) => {
+      cartItems.forEach(item => removeItem(item.id));
+      navigate(`/order-success/${order.id}`);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error creating order",
+        description: "There was a problem creating your order. Please try again.",
+      });
+      console.error('Order creation error:', error);
+    },
+  });
 
   const handlePlaceOrder = () => {
     const validationErrors = validateCheckout();
@@ -97,7 +143,7 @@ export const CheckoutOrderSummary = () => {
       return;
     }
 
-    // Proceed with order placement
+    createOrderMutation.mutate();
   };
 
   return (
@@ -145,6 +191,19 @@ export const CheckoutOrderSummary = () => {
             placeholder="Please list any allergies or dietary restrictions..."
             value={allergyNotes}
             onChange={(e) => setAllergyNotes(e.target.value)}
+            className="mb-4"
+          />
+        </div>
+
+        <div className="pt-4">
+          <label htmlFor="deliveryNotes" className="block text-sm font-medium text-gray-700 mb-2">
+            Delivery Notes
+          </label>
+          <Textarea
+            id="deliveryNotes"
+            placeholder="Please add any delivery notes..."
+            value={deliveryNotes}
+            onChange={(e) => setDeliveryNotes(e.target.value)}
             className="mb-4"
           />
         </div>

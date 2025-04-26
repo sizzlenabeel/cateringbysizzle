@@ -19,6 +19,7 @@ import CompanySettings from "./pages/CompanySettings";
 import Admin from "./pages/Admin";
 import CompanyRegistration from "./pages/CompanyRegistration";
 import Checkout from "./pages/Checkout";
+import OrderSuccess from "./pages/OrderSuccess";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/order-history" element={<OrderHistory />} />
               <Route path="/company-settings" element={<CompanySettings />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/order-success/:orderId" element={<OrderSuccess />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
