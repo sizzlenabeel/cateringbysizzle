@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,17 +10,24 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
   rememberMe: z.boolean().optional()
 });
+
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const {
-    signIn
-  } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/order");
+    }
+  }, [user, navigate]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -29,6 +36,7 @@ const Login = () => {
       rememberMe: false
     }
   });
+
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
@@ -42,6 +50,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
   return <Layout>
       <div className="flex items-center justify-center min-h-[calc(100vh-16rem)] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-md">
@@ -111,4 +120,5 @@ const Login = () => {
       </div>
     </Layout>;
 };
+
 export default Login;
