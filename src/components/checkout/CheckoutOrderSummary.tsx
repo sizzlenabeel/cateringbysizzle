@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,9 +20,11 @@ export const CheckoutOrderSummary = () => {
   const [deliveryNotes, setDeliveryNotes] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
-  const { company } = useOrderAddresses(user?.id);
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Import selectedAddress from useOrderAddresses hook
+  const { company, selectedAddress } = useOrderAddresses(user?.id);
 
   const { data: menuItems } = useQuery({
     queryKey: ['menuItems', cartItems.map(item => item.menuId)],
