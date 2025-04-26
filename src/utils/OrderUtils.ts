@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem } from "@/contexts/CartContext";
+import { calculateOrderTaxes } from "./TaxUtils";
 
 interface CreateOrderParams {
   cartItems: CartItem[];
@@ -23,6 +24,26 @@ export const createOrder = async (params: CreateOrderParams) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("User must be logged in to create an order");
 
+  // Get discount code details if provided
+  let discountDetails;
+  if (params.discountCode) {
+    const { data: discountData } = await supabase
+      .from('discount_codes')
+      .select('*')
+      .eq('code', params.discountCode)
+      .single();
+    discountDetails = discountData;
+  }
+
+  // Calculate taxes and fees
+  const taxBreakdown = calculateOrderTaxes(
+    params.totalAmount,
+    discountDetails ? {
+      percentage: discountDetails.percentage,
+      applies_to: discountDetails.discount_applies_to
+    } : undefined
+  );
+
   // Start a Supabase transaction
   const { data: order, error: orderError } = await supabase
     .from('orders')
@@ -34,7 +55,15 @@ export const createOrder = async (params: CreateOrderParams) => {
       shipping_address: params.shippingInfo.address,
       delivery_notes: params.notes?.delivery,
       allergy_notes: params.notes?.allergy,
-      total_amount: params.totalAmount,
+      subtotal_pre_tax: taxBreakdown.subtotalPreTax,
+      product_tax_amount: taxBreakdown.productTaxAmount,
+      admin_fee_amount: taxBreakdown.adminFeeAmount,
+      admin_fee_tax_amount: taxBreakdown.adminFeeTaxAmount,
+      admin_fee_discount: taxBreakdown.adminFeeDiscount,
+      delivery_fee_amount: taxBreakdown.deliveryFeeAmount,
+      delivery_fee_tax_amount: taxBreakdown.deliveryFeeTaxAmount,
+      delivery_fee_discount: taxBreakdown.deliveryFeeDiscount,
+      total_amount: taxBreakdown.totalAmount,
       discount_code: params.discountCode,
       discount_amount: params.discountAmount || 0,
       status: 'pending'

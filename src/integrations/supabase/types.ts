@@ -169,6 +169,7 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          discount_applies_to: string[] | null
           id: string
           is_active: boolean | null
           percentage: number
@@ -179,6 +180,7 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string
+          discount_applies_to?: string[] | null
           id?: string
           is_active?: boolean | null
           percentage: number
@@ -189,6 +191,7 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string
+          discount_applies_to?: string[] | null
           id?: string
           is_active?: boolean | null
           percentage?: number
@@ -431,52 +434,76 @@ export type Database = {
       }
       orders: {
         Row: {
+          admin_fee_amount: number | null
+          admin_fee_discount: number | null
+          admin_fee_tax_amount: number | null
           allergy_notes: string | null
           created_at: string
+          delivery_fee_amount: number | null
+          delivery_fee_discount: number | null
+          delivery_fee_tax_amount: number | null
           delivery_notes: string | null
           discount_amount: number
           discount_code: string | null
           id: string
+          product_tax_amount: number | null
           reference: string | null
           shipping_address: string
           shipping_email: string
           shipping_name: string
           shipping_phone: string
           status: string
+          subtotal_pre_tax: number | null
           total_amount: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          admin_fee_amount?: number | null
+          admin_fee_discount?: number | null
+          admin_fee_tax_amount?: number | null
           allergy_notes?: string | null
           created_at?: string
+          delivery_fee_amount?: number | null
+          delivery_fee_discount?: number | null
+          delivery_fee_tax_amount?: number | null
           delivery_notes?: string | null
           discount_amount?: number
           discount_code?: string | null
           id?: string
+          product_tax_amount?: number | null
           reference?: string | null
           shipping_address: string
           shipping_email: string
           shipping_name: string
           shipping_phone: string
           status?: string
+          subtotal_pre_tax?: number | null
           total_amount: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          admin_fee_amount?: number | null
+          admin_fee_discount?: number | null
+          admin_fee_tax_amount?: number | null
           allergy_notes?: string | null
           created_at?: string
+          delivery_fee_amount?: number | null
+          delivery_fee_discount?: number | null
+          delivery_fee_tax_amount?: number | null
           delivery_notes?: string | null
           discount_amount?: number
           discount_code?: string | null
           id?: string
+          product_tax_amount?: number | null
           reference?: string | null
           shipping_address?: string
           shipping_email?: string
           shipping_name?: string
           shipping_phone?: string
           status?: string
+          subtotal_pre_tax?: number | null
           total_amount?: number
           updated_at?: string
           user_id?: string

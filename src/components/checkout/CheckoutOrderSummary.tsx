@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useOrderAddresses } from "@/hooks/useOrderAddresses";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { calculateOrderTaxes } from "@/utils/TaxUtils";
 
 export const CheckoutOrderSummary = () => {
   const { cartItems, subtotal, formatPrice, removeItem } = useCart();
@@ -80,19 +80,27 @@ export const CheckoutOrderSummary = () => {
   };
 
   const createOrderMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (payload: any) => {
       // Create the order
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
           user_id: user?.id,
-          total_amount: subtotal,
+          total_amount: payload.totalAmount,
           shipping_name: `${user?.user_metadata?.first_name} ${user?.user_metadata?.last_name}`,
           shipping_email: user?.email,
           shipping_phone: user?.user_metadata?.phone,
           shipping_address: selectedAddress?.address,
           delivery_notes: deliveryNotes,
           allergy_notes: allergyNotes,
+          subtotal_pre_tax: taxBreakdown.subtotalPreTax,
+          product_tax_amount: taxBreakdown.productTaxAmount,
+          admin_fee_amount: taxBreakdown.adminFeeAmount,
+          admin_fee_tax_amount: taxBreakdown.adminFeeTaxAmount,
+          admin_fee_discount: taxBreakdown.adminFeeDiscount,
+          delivery_fee_amount: taxBreakdown.deliveryFeeAmount,
+          delivery_fee_tax_amount: taxBreakdown.deliveryFeeTaxAmount,
+          delivery_fee_discount: taxBreakdown.deliveryFeeDiscount,
         })
         .select()
         .single();
@@ -175,8 +183,25 @@ export const CheckoutOrderSummary = () => {
     }
 
     setIsSubmitting(true);
-    createOrderMutation.mutate();
+    const taxBreakdown = calculateOrderTaxes(subtotal);
+    
+    createOrderMutation.mutate({
+      cartItems,
+      shippingInfo: {
+        name: `${user?.user_metadata?.first_name} ${user?.user_metadata?.last_name}`,
+        email: user?.email || '',
+        phone: user?.user_metadata?.phone || '',
+        address: selectedAddress?.address || '',
+      },
+      notes: {
+        delivery: deliveryNotes,
+        allergy: allergyNotes,
+      },
+      totalAmount: taxBreakdown.totalAmount,
+    });
   };
+
+  const taxBreakdown = calculateOrderTaxes(subtotal);
 
   return (
     <Card className="sticky top-20">
@@ -240,10 +265,40 @@ export const CheckoutOrderSummary = () => {
           />
         </div>
 
-        <div className="border-t pt-4">
-          <div className="flex justify-between font-bold">
+        <div className="border-t pt-4 space-y-2">
+          <div className="flex justify-between">
+            <span>Subtotal (excl. VAT)</span>
+            <span>{formatSEK(taxBreakdown.subtotalPreTax)}</span>
+          </div>
+        
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>VAT (12%)</span>
+            <span>{formatSEK(taxBreakdown.productTaxAmount)}</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span>Administrative fee (5%)</span>
+            <span>{formatSEK(taxBreakdown.adminFeeAmount)}</span>
+          </div>
+
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Administrative fee VAT (25%)</span>
+            <span>{formatSEK(taxBreakdown.adminFeeTaxAmount)}</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span>Delivery fee</span>
+            <span>{formatSEK(taxBreakdown.deliveryFeeAmount)}</span>
+          </div>
+
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Delivery fee VAT (25%)</span>
+            <span>{formatSEK(taxBreakdown.deliveryFeeTaxAmount)}</span>
+          </div>
+
+          <div className="border-t pt-2 flex justify-between font-bold">
             <span>Total</span>
-            <span>{formatSEK(subtotal)}</span>
+            <span>{formatSEK(taxBreakdown.totalAmount)}</span>
           </div>
         </div>
 
