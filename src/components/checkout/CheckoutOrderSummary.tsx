@@ -10,6 +10,8 @@ import { useOrderAddresses } from "@/hooks/useOrderAddresses";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { calculateOrderTaxes } from "@/utils/TaxUtils";
+import { useDiscountCode } from '@/hooks/useDiscountCode';
+import { DiscountCodeInput } from './DiscountCodeInput';
 
 export const CheckoutOrderSummary = () => {
   const { cartItems, subtotal, formatPrice, removeItem } = useCart();
@@ -17,7 +19,7 @@ export const CheckoutOrderSummary = () => {
   const [deliveryNotes, setDeliveryNotes] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
-  const { company, selectedAddress } = useOrderAddresses(user?.id);
+  const { company } = useOrderAddresses(user?.id);
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -183,7 +185,6 @@ export const CheckoutOrderSummary = () => {
     }
 
     setIsSubmitting(true);
-    const taxBreakdown = calculateOrderTaxes(subtotal);
     
     createOrderMutation.mutate({
       cartItems,
@@ -201,7 +202,19 @@ export const CheckoutOrderSummary = () => {
     });
   };
 
-  const taxBreakdown = calculateOrderTaxes(subtotal);
+  const {
+    discountCode,
+    discountInfo,
+    isValidating,
+    validateDiscountCode,
+    clearDiscount
+  } = useDiscountCode();
+
+  const taxBreakdown = calculateOrderTaxes(
+    subtotal,
+    discountInfo,
+    company?.discount_percentage || 0
+  );
 
   return (
     <Card className="sticky top-20">
@@ -237,6 +250,15 @@ export const CheckoutOrderSummary = () => {
               </div>
             );
           })}
+        </div>
+
+        <div className="pt-4">
+          <DiscountCodeInput
+            onApplyDiscount={validateDiscountCode}
+            isValidating={isValidating}
+            discountCode={discountCode}
+            onClear={clearDiscount}
+          />
         </div>
 
         <div className="pt-4">
@@ -295,6 +317,20 @@ export const CheckoutOrderSummary = () => {
             <span>Delivery fee VAT (25%)</span>
             <span>{formatSEK(taxBreakdown.deliveryFeeTaxAmount)}</span>
           </div>
+
+          {company?.discount_percentage > 0 && (
+            <div className="flex justify-between text-sm text-green-600">
+              <span>Company Discount ({company.discount_percentage}%)</span>
+              <span>-{formatSEK((taxBreakdown.adminFeeDiscount + taxBreakdown.deliveryFeeDiscount))}</span>
+            </div>
+          )}
+
+          {discountInfo && (
+            <div className="flex justify-between text-sm text-green-600">
+              <span>Discount Code ({discountInfo.percentage}%)</span>
+              <span>Applied to: {discountInfo.applies_to?.join(', ')}</span>
+            </div>
+          )}
 
           <div className="border-t pt-2 flex justify-between font-bold">
             <span>Total</span>

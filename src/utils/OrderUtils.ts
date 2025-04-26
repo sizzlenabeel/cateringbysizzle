@@ -24,6 +24,24 @@ export const createOrder = async (params: CreateOrderParams) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("User must be logged in to create an order");
 
+  // Get user's company discount if any
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', user.id)
+    .single();
+
+  let companyDiscountPercentage = 0;
+  if (profile?.company_id) {
+    const { data: company } = await supabase
+      .from('companies')
+      .select('discount_percentage')
+      .eq('id', profile.company_id)
+      .single();
+    
+    companyDiscountPercentage = company?.discount_percentage || 0;
+  }
+
   // Get discount code details if provided
   let discountDetails;
   if (params.discountCode) {
@@ -41,7 +59,8 @@ export const createOrder = async (params: CreateOrderParams) => {
     discountDetails ? {
       percentage: discountDetails.percentage,
       applies_to: discountDetails.discount_applies_to
-    } : undefined
+    } : undefined,
+    companyDiscountPercentage
   );
 
   // Start a Supabase transaction

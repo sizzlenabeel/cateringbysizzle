@@ -18,40 +18,61 @@ export interface OrderTaxBreakdown {
   totalAmount: number;
 }
 
+export interface DiscountInfo {
+  percentage: number;
+  applies_to?: string[];
+}
+
 export const calculateOrderTaxes = (
   subtotal: number,
-  discountCode?: {
-    percentage: number;
-    applies_to?: string[];
-  }
+  discountInfo?: DiscountInfo | null,
+  companyDiscountPercentage: number = 0
 ): OrderTaxBreakdown => {
   const subtotalPreTax = subtotal;
   const productTaxAmount = subtotalPreTax * TAX_RATES.PRODUCT_TAX;
   
-  // Calculate admin fee and its tax
+  // Calculate admin fee before any discounts
   let adminFeeAmount = subtotalPreTax * TAX_RATES.ADMIN_FEE_PERCENTAGE;
   let adminFeeDiscount = 0;
   
-  // Calculate delivery fee and its tax
+  // Calculate delivery fee before any discounts
   let deliveryFeeAmount = TAX_RATES.DELIVERY_FEE;
   let deliveryFeeDiscount = 0;
 
   // Apply discounts if applicable
-  if (discountCode) {
-    const discountPercentage = discountCode.percentage / 100;
-    const appliesTo = discountCode.applies_to || ['products', 'admin_fee', 'delivery_fee'];
+  const applyDiscount = (amount: number, discountPercentage: number) => {
+    return amount * (discountPercentage / 100);
+  };
 
-    if (appliesTo.includes('admin_fee')) {
-      adminFeeDiscount = adminFeeAmount * discountPercentage;
-      adminFeeAmount -= adminFeeDiscount;
+  // First check for company-wide discount
+  if (companyDiscountPercentage > 0) {
+    // Company discount applies to everything by default
+    adminFeeDiscount = applyDiscount(adminFeeAmount, companyDiscountPercentage);
+    deliveryFeeDiscount = applyDiscount(deliveryFeeAmount, companyDiscountPercentage);
+  }
+
+  // Then check for specific discount code which might override company discount if higher
+  if (discountInfo) {
+    const { percentage, applies_to = ['products', 'admin_fee', 'delivery_fee'] } = discountInfo;
+    
+    if (applies_to.includes('admin_fee')) {
+      const codeDiscount = applyDiscount(adminFeeAmount, percentage);
+      // Use the higher discount between company and code discount
+      adminFeeDiscount = Math.max(adminFeeDiscount, codeDiscount);
     }
 
-    if (appliesTo.includes('delivery_fee')) {
-      deliveryFeeDiscount = deliveryFeeAmount * discountPercentage;
-      deliveryFeeAmount -= deliveryFeeDiscount;
+    if (applies_to.includes('delivery_fee')) {
+      const codeDiscount = applyDiscount(deliveryFeeAmount, percentage);
+      // Use the higher discount between company and code discount
+      deliveryFeeDiscount = Math.max(deliveryFeeDiscount, codeDiscount);
     }
   }
 
+  // Apply the discounts
+  adminFeeAmount -= adminFeeDiscount;
+  deliveryFeeAmount -= deliveryFeeDiscount;
+
+  // Calculate taxes after discounts
   const adminFeeTaxAmount = adminFeeAmount * TAX_RATES.SERVICE_TAX;
   const deliveryFeeTaxAmount = deliveryFeeAmount * TAX_RATES.SERVICE_TAX;
 
