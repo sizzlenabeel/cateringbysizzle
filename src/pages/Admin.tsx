@@ -11,6 +11,7 @@ import MenuItemsManager from "@/components/admin/MenuItemsManager";
 import EventTypesManager from "@/components/admin/EventTypesManager";
 import ServingStylesManager from "@/components/admin/ServingStylesManager";
 import RelationshipsManager from "@/components/admin/RelationshipsManager";
+import OrdersManager from "@/components/admin/OrdersManager";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("products");
@@ -64,12 +65,13 @@ const Admin = () => {
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-5 mb-8">
+          <TabsList className="grid grid-cols-6 mb-8">
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="menu-items">Menu Items</TabsTrigger>
             <TabsTrigger value="event-types">Event Types</TabsTrigger>
             <TabsTrigger value="serving-styles">Serving Styles</TabsTrigger>
             <TabsTrigger value="relationships">Relationships</TabsTrigger>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
           </TabsList>
           
           <TabsContent value="products" className="space-y-4">
@@ -90,6 +92,10 @@ const Admin = () => {
           
           <TabsContent value="relationships" className="space-y-4">
             <RelationshipsManager />
+          </TabsContent>
+          
+          <TabsContent value="orders" className="space-y-4">
+            <OrdersManager />
           </TabsContent>
         </Tabs>
       </div>

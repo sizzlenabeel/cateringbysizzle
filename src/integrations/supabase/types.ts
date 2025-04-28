@@ -234,6 +234,33 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          name: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          name: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_types: {
         Row: {
           created_at: string
@@ -472,6 +499,7 @@ export type Database = {
           admin_fee_tax_amount: number | null
           allergy_notes: string | null
           created_at: string
+          customer_email_sent: boolean | null
           delivery_fee_amount: number | null
           delivery_fee_discount: number | null
           delivery_fee_tax_amount: number | null
@@ -479,6 +507,9 @@ export type Database = {
           discount_amount: number
           discount_code: string | null
           id: string
+          invoice_generated: boolean | null
+          invoice_url: string | null
+          kitchen_email_sent: boolean | null
           product_tax_amount: number | null
           reference: string | null
           shipping_address: string
@@ -497,6 +528,7 @@ export type Database = {
           admin_fee_tax_amount?: number | null
           allergy_notes?: string | null
           created_at?: string
+          customer_email_sent?: boolean | null
           delivery_fee_amount?: number | null
           delivery_fee_discount?: number | null
           delivery_fee_tax_amount?: number | null
@@ -504,6 +536,9 @@ export type Database = {
           discount_amount?: number
           discount_code?: string | null
           id?: string
+          invoice_generated?: boolean | null
+          invoice_url?: string | null
+          kitchen_email_sent?: boolean | null
           product_tax_amount?: number | null
           reference?: string | null
           shipping_address: string
@@ -522,6 +557,7 @@ export type Database = {
           admin_fee_tax_amount?: number | null
           allergy_notes?: string | null
           created_at?: string
+          customer_email_sent?: boolean | null
           delivery_fee_amount?: number | null
           delivery_fee_discount?: number | null
           delivery_fee_tax_amount?: number | null
@@ -529,6 +565,9 @@ export type Database = {
           discount_amount?: number
           discount_code?: string | null
           id?: string
+          invoice_generated?: boolean | null
+          invoice_url?: string | null
+          kitchen_email_sent?: boolean | null
           product_tax_amount?: number | null
           reference?: string | null
           shipping_address?: string

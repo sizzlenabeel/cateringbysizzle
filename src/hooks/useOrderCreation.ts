@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -94,6 +95,37 @@ export const useOrderCreation = () => {
       if (itemsError) {
         console.error("Order items creation error:", itemsError);
         throw itemsError;
+      }
+
+      // Trigger emails automatically
+      try {
+        // Send emails asynchronously - don't wait for completion
+        fetch(`${window.location.origin}/api/send-order-emails`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({
+            orderId: order.id,
+            emailType: "customer",
+          }),
+        }).catch(err => console.error("Failed to send customer email:", err));
+        
+        fetch(`${window.location.origin}/api/send-order-emails`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({
+            orderId: order.id,
+            emailType: "kitchen",
+          }),
+        }).catch(err => console.error("Failed to send kitchen email:", err));
+      } catch (emailError) {
+        console.error("Failed to trigger emails:", emailError);
+        // Continue with order creation even if email fails
       }
 
       return order;
