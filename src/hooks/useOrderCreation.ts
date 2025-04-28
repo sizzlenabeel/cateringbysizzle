@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/CartContext";
 
 interface OrderValidationError {
   field: string;
@@ -32,6 +32,7 @@ export const useOrderCreation = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { clearCart } = useCart();
 
   const validateOrder = (): OrderValidationError[] => {
     const errors: OrderValidationError[] = [];
@@ -97,9 +98,15 @@ export const useOrderCreation = () => {
 
       return order;
     },
-    onSuccess: (order) => {
-      console.log("Order complete, redirecting...");
-      navigate(`/order-success/${order.id}`);
+    onSuccess: async (order) => {
+      try {
+        await clearCart();
+        console.log("Cart cleared successfully after order creation");
+        navigate(`/order-success/${order.id}`);
+      } catch (error) {
+        console.error('Error clearing cart after order:', error);
+        navigate(`/order-success/${order.id}`);
+      }
     },
     onError: (error) => {
       console.error('Order creation error:', error);
@@ -118,7 +125,6 @@ export const useOrderCreation = () => {
     const validationErrors = validateOrder();
     
     if (validationErrors.length > 0) {
-      // Creating the error message as a string instead of JSX
       const errorMessages = validationErrors.map(error => error.message).join('\n• ');
       
       toast({

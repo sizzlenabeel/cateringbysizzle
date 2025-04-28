@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart, loadCartItems, removeFromCart, updateCartItemQuantity } from "@/utils/CartUtils";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/utils/supabase";
 
 // Unified CartItem type definition
 export type CartItem = {
@@ -21,6 +22,7 @@ type CartContextType = {
   isLoading: boolean;
   subtotal: number;
   formatPrice: (price: number) => string;
+  clearCart: () => Promise<void>;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -99,6 +101,38 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     },
   });
 
+  const clearCartMutation = useMutation({
+    mutationFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        throw new Error("No active session");
+      }
+      
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('user_id', session.user.id);
+        
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      toast({
+        title: "Cart cleared",
+        description: "Your cart has been cleared successfully"
+      });
+    },
+    onError: (error) => {
+      console.error("Error clearing cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear cart items",
+        variant: "destructive"
+      });
+    },
+  });
+
   const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice * item.quantity, 0);
 
   // Helper function to format prices in SEK
@@ -137,6 +171,14 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
             await removeItemMutation.mutateAsync(itemId);
           } catch (error) {
             console.error("Error removing item:", error);
+            throw error;
+          }
+        },
+        clearCart: async () => {
+          try {
+            await clearCartMutation.mutateAsync();
+          } catch (error) {
+            console.error("Error clearing cart:", error);
             throw error;
           }
         },
