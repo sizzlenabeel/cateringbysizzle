@@ -20,7 +20,46 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // SECURITY: Verify JWT token and get authenticated user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing Authorization header');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Invalid token:', authError);
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { orderId } = await req.json() as InvoiceRequest;
+    
+    // SECURITY: Verify user owns the order or is admin
+    const { data: isOwner } = await supabase.rpc('user_owns_order', {
+      _user_id: user.id,
+      _order_id: orderId
+    });
+
+    const { data: isAdmin } = await supabase.rpc('is_admin');
+
+    if (!isOwner && !isAdmin) {
+      console.error('Forbidden: User does not own order and is not admin', { userId: user.id, orderId });
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`Authorized invoice request for order ${orderId} from user ${user.id}`);
 
     // Fetch order details
     const { data: order, error: orderError } = await supabase
