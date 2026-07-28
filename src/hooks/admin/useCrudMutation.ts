@@ -71,10 +71,9 @@ export function useCrudMutation<TData extends WithOptionalId>({
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from(tableName)
+      const { error } = await (supabase.from(tableName) as any)
         .delete()
-        .eq('id' as any, id);
+        .eq('id', id);
         
       if (error) throw error;
       return id;
