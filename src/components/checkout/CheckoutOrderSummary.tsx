@@ -13,6 +13,7 @@ import { DiscountCodeInput } from './DiscountCodeInput';
 import { useOrderCreation } from "@/hooks/useOrderCreation";
 import { useToast } from "@/hooks/use-toast";
 import { calculateOrderTaxes } from "@/utils/TaxUtils";
+import { useIsEmailVerified } from "@/components/auth/EmailVerificationBanner";
 
 export const CheckoutOrderSummary = () => {
   const { cartItems, subtotal, formatPrice, removeItem } = useCart();
@@ -22,6 +23,7 @@ export const CheckoutOrderSummary = () => {
   const { company, selectedAddress } = useOrderAddresses(user?.id);
   const { createOrder, isSubmitting } = useOrderCreation();
   const { toast } = useToast();
+  const isEmailVerified = useIsEmailVerified();
 
   const {
     discountCode,
@@ -40,6 +42,15 @@ export const CheckoutOrderSummary = () => {
   );
 
   const handlePlaceOrder = () => {
+    if (!isEmailVerified) {
+      toast({
+        variant: "destructive",
+        title: "Confirm your email first",
+        description: "Please click the confirmation link we emailed you before placing an order.",
+      });
+      return;
+    }
+
     if (!selectedAddress?.address) {
       toast({
         variant: "destructive",
@@ -111,10 +122,15 @@ export const CheckoutOrderSummary = () => {
         <Button 
           className="w-full bg-orange-600 hover:bg-orange-500"
           onClick={handlePlaceOrder}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !isEmailVerified}
         >
           {isSubmitting ? "Processing..." : "Place Order"}
         </Button>
+        {!isEmailVerified && (
+          <p className="text-sm text-muted-foreground text-center">
+            Confirm your email address to unlock ordering.
+          </p>
+        )}
       </CardContent>
     </Card>
   );

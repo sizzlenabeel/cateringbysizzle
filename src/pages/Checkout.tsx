@@ -10,6 +10,7 @@ import { CheckoutDeliveryInfo } from "@/components/checkout/CheckoutDeliveryInfo
 import { CheckoutInvoiceDetails } from "@/components/checkout/CheckoutInvoiceDetails";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -46,6 +47,8 @@ const Checkout = () => {
         </Button>
 
         <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+
+        <EmailVerificationBanner />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">

@@ -9,8 +9,11 @@ export type Address = {
   address: string;
 };
 
-// Use the database-generated type rather than creating our own
-export type Company = DatabaseCompany;
+// Public company columns plus the private billing fields (stored in company_private)
+export type Company = DatabaseCompany & {
+  billing_email: string | null;
+  discount_percentage: number | null;
+};
 
 export const useOrderAddresses = (userId: string | undefined) => {
   const [company, setCompany] = useState<Company | null>(null);
@@ -35,7 +38,22 @@ export const useOrderAddresses = (userId: string | undefined) => {
           .eq("id", profile.company_id)
           .single();
 
-        setCompany(comp);
+        // Billing email / discount live in the restricted company_private table
+        const { data: priv } = await supabase
+          .from("company_private")
+          .select("billing_email, discount_percentage")
+          .eq("company_id", profile.company_id)
+          .maybeSingle();
+
+        setCompany(
+          comp
+            ? {
+                ...comp,
+                billing_email: priv?.billing_email ?? null,
+                discount_percentage: priv?.discount_percentage ?? 0,
+              }
+            : null
+        );
 
         // Fetch addresses
         const { data: companyAddresses, error } = await supabase

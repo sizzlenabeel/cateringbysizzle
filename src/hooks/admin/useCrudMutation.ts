@@ -32,8 +32,7 @@ export function useCrudMutation<TData extends WithOptionalId>({
       if (item.id) {
         // Update existing item
         const { id, ...updateData } = item;
-        const { data, error } = await supabase
-          .from(tableName)
+        const { data, error } = await (supabase.from(tableName) as any)
           .update(updateData as any)
           .eq('id', id)
           .select();
@@ -72,8 +71,7 @@ export function useCrudMutation<TData extends WithOptionalId>({
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from(tableName)
+      const { error } = await (supabase.from(tableName) as any)
         .delete()
         .eq('id', id);
         

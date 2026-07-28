@@ -5,39 +5,38 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader } from "lucide-react";
 
-interface Company {
+export interface CompanySearchResult {
   id: string;
   name: string;
   address: string;
+  organization_number: string;
 }
 
 interface CompanySearchProps {
-  onCompanySelect: (companyId: string) => void;
+  onCompanySelect: (companyId: string, company?: CompanySearchResult) => void;
+  selectedCompanyId?: string;
 }
 
-export const CompanySearch = ({ onCompanySelect }: CompanySearchProps) => {
+export const CompanySearch = ({ onCompanySelect, selectedCompanyId }: CompanySearchProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<CompanySearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const searchCompanies = async () => {
-      if (searchTerm.length < 2) {
+      if (searchTerm.trim().length < 2) {
         setCompanies([]);
         return;
       }
 
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('companies')
-          .select('id, name, address')
-          .ilike('name', `%${searchTerm}%`)
-          .limit(5);
+        // Security-definer RPC: works before sign-in and only exposes public company fields
+        const { data, error } = await supabase.rpc('search_companies', { q: searchTerm.trim() });
 
         if (error) throw error;
-        setCompanies(data || []);
+        setCompanies((data as CompanySearchResult[]) || []);
       } catch (error: any) {
         toast({
           title: "Error searching companies",
@@ -58,7 +57,7 @@ export const CompanySearch = ({ onCompanySelect }: CompanySearchProps) => {
       <div className="relative">
         <Input
           type="text"
-          placeholder="Search for your company..."
+          placeholder="Search by company name or organization number..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full"
@@ -75,14 +74,20 @@ export const CompanySearch = ({ onCompanySelect }: CompanySearchProps) => {
           {companies.map((company) => (
             <li
               key={company.id}
-              className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-              onClick={() => onCompanySelect(company.id)}
+              className={`p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
+                selectedCompanyId === company.id ? 'border-orange-500 bg-orange-50' : ''
+              }`}
+              onClick={() => onCompanySelect(company.id, company)}
             >
               <h3 className="font-medium">{company.name}</h3>
               <p className="text-sm text-gray-500">{company.address}</p>
             </li>
           ))}
         </ul>
+      )}
+
+      {!isLoading && searchTerm.trim().length >= 2 && companies.length === 0 && (
+        <p className="text-sm text-gray-500">No companies matched that search.</p>
       )}
     </div>
   );

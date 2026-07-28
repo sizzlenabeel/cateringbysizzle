@@ -48,10 +48,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/order`,
           data: {
             first_name: userData.firstName,
             last_name: userData.lastName,
             phone: userData.phone,
+            // Company linking is performed server-side by the handle_new_user trigger,
+            // because no session exists until the email address is confirmed.
+            company_id: userData.companyId ?? null,
+            new_company: userData.newCompany ?? null,
           },
         },
       });

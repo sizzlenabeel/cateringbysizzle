@@ -14,6 +14,7 @@ import { registerFormSchema, type RegisterFormValues } from "@/lib/validations/r
 import { PersonalInfoFields } from "@/components/auth/PersonalInfoFields";
 import { SecurityFields } from "@/components/auth/SecurityFields";
 import { TermsCheckbox } from "@/components/auth/TermsCheckbox";
+import { CompanySelectionFields } from "@/components/auth/CompanySelectionFields";
 
 const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -29,17 +30,31 @@ const Register = () => {
       email: "",
       phone: "",
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
+      companyMode: "join",
+      companyId: undefined,
+      companyName: "",
+      companyAddress: "",
+      organizationNumber: ""
     }
   });
 
   const handleSubmit = async (values: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      const { error, userId } = await signUp(values.email, values.password, {
+      const { error } = await signUp(values.email, values.password, {
         firstName: values.firstName,
         lastName: values.lastName,
-        phone: values.phone
+        phone: values.phone,
+        companyId: values.companyMode === "join" ? values.companyId : undefined,
+        newCompany:
+          values.companyMode === "create"
+            ? {
+                name: values.companyName?.trim() ?? "",
+                address: values.companyAddress?.trim() ?? "",
+                organization_number: values.organizationNumber?.trim() ?? ""
+              }
+            : undefined
       });
 
       if (error) {
@@ -47,7 +62,7 @@ const Register = () => {
         return;
       }
 
-      navigate("/company-registration");
+      navigate("/verify-email", { state: { email: values.email } });
     } catch (error: any) {
       console.error("Registration error:", error);
       toast({
@@ -74,6 +89,8 @@ const Register = () => {
             <form onSubmit={form.handleSubmit(handleSubmit)}>
               <CardContent className="space-y-6">
                 <PersonalInfoFields form={form} />
+                <Separator />
+                <CompanySelectionFields form={form} />
                 <Separator />
                 <SecurityFields form={form} />
                 <TermsCheckbox />
