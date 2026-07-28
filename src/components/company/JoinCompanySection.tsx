@@ -66,9 +66,7 @@ export const JoinCompanySection = ({ userId, onSuccess }: JoinCompanySectionProp
       setIsLoadingCompanies(true);
       try {
         const { data, error } = await supabase
-          .from('companies')
-          .select('*')
-          .order('name')
+          .rpc('search_companies', { q: '' })
           .limit(5);
         
         if (error) throw error;
