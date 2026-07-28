@@ -91,9 +91,7 @@ export type Database = {
       companies: {
         Row: {
           address: string
-          billing_email: string | null
           created_at: string
-          discount_percentage: number | null
           id: string
           logo_url: string | null
           name: string
@@ -102,9 +100,7 @@ export type Database = {
         }
         Insert: {
           address: string
-          billing_email?: string | null
           created_at?: string
-          discount_percentage?: number | null
           id?: string
           logo_url?: string | null
           name: string
@@ -113,9 +109,7 @@ export type Database = {
         }
         Update: {
           address?: string
-          billing_email?: string | null
           created_at?: string
-          discount_percentage?: number | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -198,6 +192,38 @@ export type Database = {
             foreignKeyName: "company_invites_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_private: {
+        Row: {
+          billing_email: string | null
+          company_id: string
+          created_at: string
+          discount_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          billing_email?: string | null
+          company_id: string
+          created_at?: string
+          discount_percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          billing_email?: string | null
+          company_id?: string
+          created_at?: string
+          discount_percentage?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_private_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
@@ -735,7 +761,17 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_email_verified: { Args: never; Returns: boolean }
       is_user_company_admin: { Args: never; Returns: boolean }
+      search_companies: {
+        Args: { q: string }
+        Returns: {
+          address: string
+          id: string
+          name: string
+          organization_number: string
+        }[]
+      }
       user_has_no_company: { Args: never; Returns: boolean }
       user_owns_order: {
         Args: { _order_id: string; _user_id: string }
