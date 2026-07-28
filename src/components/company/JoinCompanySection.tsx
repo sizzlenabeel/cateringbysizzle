@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader } from "lucide-react";
@@ -13,8 +12,6 @@ interface JoinCompanySectionProps {
 
 export const JoinCompanySection = ({ userId, onSuccess }: JoinCompanySectionProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [existingCompanies, setExistingCompanies] = useState<any[]>([]);
-  const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
   const { toast } = useToast();
 
   const joinExistingCompany = async (companyId: string) => {
