@@ -23,6 +23,7 @@ import Admin from "./pages/Admin";
 import CompanyRegistration from "./pages/CompanyRegistration";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
+import VerifyEmail from "./pages/VerifyEmail";
 import { useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -49,7 +50,9 @@ const App = () => (
             <Routes>
               <Route path="/" element={<HomeRedirect />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+             <Route path="/register" element={<Register />} />
+             <Route path="/verify-email" element={<VerifyEmail />} />
+             <Route path="/company-registration" element={<CompanyRegistration />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/contact" element={<Contact />} />
