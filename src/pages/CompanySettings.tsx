@@ -39,12 +39,19 @@ const CompanySettings = () => {
         .single();
 
       if (error) { console.error('Error loading company:', error); return; }
+
+      const { data: companyPrivate } = await supabase
+        .from('company_private')
+        .select('billing_email')
+        .eq('company_id', profile.company_id)
+        .maybeSingle();
+
       if (company) {
         setFormData({
           companyName: company.name,
           address: company.address,
           organizationNumber: company.organization_number || "",
-          billingEmail: company.billing_email || "",
+          billingEmail: companyPrivate?.billing_email || "",
         });
       }
     };
@@ -71,11 +78,20 @@ const CompanySettings = () => {
           name: formData.companyName,
           address: formData.address,
           organization_number: formData.organizationNumber,
-          billing_email: formData.billingEmail,
         })
         .eq('id', profile.company_id);
 
       if (error) throw error;
+
+      // Billing email lives in the restricted company_private table
+      const { error: privateError } = await supabase
+        .from('company_private')
+        .upsert(
+          { company_id: profile.company_id, billing_email: formData.billingEmail },
+          { onConflict: 'company_id' }
+        );
+
+      if (privateError) throw privateError;
 
       toast({
         title: "Company updated",
