@@ -10,6 +10,7 @@ import { CheckoutDeliveryInfo } from "@/components/checkout/CheckoutDeliveryInfo
 import { CheckoutInvoiceDetails } from "@/components/checkout/CheckoutInvoiceDetails";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
 
 const Checkout = () => {
   const navigate = useNavigate();
