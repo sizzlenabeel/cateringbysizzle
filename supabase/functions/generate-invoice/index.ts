@@ -99,8 +99,17 @@ const handler = async (req: Request): Promise<Response> => {
         .select("*")
         .eq("id", profile.company_id)
         .single();
-      
-      company = companyData;
+
+      // Billing details live in the restricted company_private table
+      const { data: companyPrivate } = await supabase
+        .from("company_private")
+        .select("billing_email, discount_percentage")
+        .eq("company_id", profile.company_id)
+        .maybeSingle();
+
+      company = companyData
+        ? { ...companyData, ...(companyPrivate ?? {}) }
+        : null;
     }
 
     // Generate invoice reference number if not exists
