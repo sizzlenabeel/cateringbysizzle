@@ -726,10 +726,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_company_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_user_company_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -737,18 +734,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_user_company_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      user_has_no_company: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_user_company_admin: { Args: never; Returns: boolean }
+      user_has_no_company: { Args: never; Returns: boolean }
       user_owns_order: {
         Args: { _order_id: string; _user_id: string }
         Returns: boolean
