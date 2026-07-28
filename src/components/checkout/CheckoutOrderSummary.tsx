@@ -122,10 +122,15 @@ export const CheckoutOrderSummary = () => {
         <Button 
           className="w-full bg-orange-600 hover:bg-orange-500"
           onClick={handlePlaceOrder}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !isEmailVerified}
         >
           {isSubmitting ? "Processing..." : "Place Order"}
         </Button>
+        {!isEmailVerified && (
+          <p className="text-sm text-muted-foreground text-center">
+            Confirm your email address to unlock ordering.
+          </p>
+        )}
       </CardContent>
     </Card>
   );
