@@ -23,6 +23,7 @@ export const CheckoutOrderSummary = () => {
   const { company, selectedAddress } = useOrderAddresses(user?.id);
   const { createOrder, isSubmitting } = useOrderCreation();
   const { toast } = useToast();
+  const isEmailVerified = useIsEmailVerified();
 
   const {
     discountCode,
