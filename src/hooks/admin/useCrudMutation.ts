@@ -35,7 +35,7 @@ export function useCrudMutation<TData extends WithOptionalId>({
         const { data, error } = await supabase
           .from(tableName)
           .update(updateData as any)
-          .eq('id', id)
+          .eq('id' as any, id)
           .select();
           
         if (error) throw error;
@@ -75,7 +75,7 @@ export function useCrudMutation<TData extends WithOptionalId>({
       const { error } = await supabase
         .from(tableName)
         .delete()
-        .eq('id', id);
+        .eq('id' as any, id);
         
       if (error) throw error;
       return id;

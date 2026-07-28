@@ -33,13 +33,13 @@ export const createOrder = async (params: CreateOrderParams) => {
 
   let companyDiscountPercentage = 0;
   if (profile?.company_id) {
-    const { data: company } = await supabase
-      .from('companies')
+    const { data: companyPrivate } = await supabase
+      .from('company_private')
       .select('discount_percentage')
-      .eq('id', profile.company_id)
-      .single();
-    
-    companyDiscountPercentage = company?.discount_percentage || 0;
+      .eq('company_id', profile.company_id)
+      .maybeSingle();
+
+    companyDiscountPercentage = companyPrivate?.discount_percentage || 0;
   }
 
   // Get discount code details if provided
