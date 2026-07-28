@@ -13,6 +13,7 @@ import { DiscountCodeInput } from './DiscountCodeInput';
 import { useOrderCreation } from "@/hooks/useOrderCreation";
 import { useToast } from "@/hooks/use-toast";
 import { calculateOrderTaxes } from "@/utils/TaxUtils";
+import { useIsEmailVerified } from "@/components/auth/EmailVerificationBanner";
 
 export const CheckoutOrderSummary = () => {
   const { cartItems, subtotal, formatPrice, removeItem } = useCart();
@@ -40,6 +41,15 @@ export const CheckoutOrderSummary = () => {
   );
 
   const handlePlaceOrder = () => {
+    if (!isEmailVerified) {
+      toast({
+        variant: "destructive",
+        title: "Confirm your email first",
+        description: "Please click the confirmation link we emailed you before placing an order.",
+      });
+      return;
+    }
+
     if (!selectedAddress?.address) {
       toast({
         variant: "destructive",
