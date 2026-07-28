@@ -9,8 +9,11 @@ export type Address = {
   address: string;
 };
 
-// Use the database-generated type rather than creating our own
-export type Company = DatabaseCompany;
+// Public company columns plus the private billing fields (stored in company_private)
+export type Company = DatabaseCompany & {
+  billing_email: string | null;
+  discount_percentage: number | null;
+};
 
 export const useOrderAddresses = (userId: string | undefined) => {
   const [company, setCompany] = useState<Company | null>(null);
